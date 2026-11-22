@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>Basin</title>
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	color: white;
+	background-color: black;
+	overflow: hidden;
+	touch-action: none;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
+#status {
+	background-color: #1f2847;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+}
+
+#status-splash {
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress, #status-notice {
+	display: none;
+}
+
+#status-progress {
+	bottom: 10%;
+	width: 50%;
+	margin: 0 auto;
+}
+
+#status-notice {
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
+}
+		</style>
+		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+<meta name='viewport' content='width=device-width, user-scalable=no, initial-scale=1.0, viewport-fit=cover'>
+<meta name='theme-color' content='#1f2847'><style>body,#status{background:#1f2847 !important}</style>
+<script>
+/* iPhone haptics (scripts/audio/haptics.gd). Safari 18+ has no navigator.vibrate,
+   but toggling a hidden switch control plays the system haptic, only inside a user
+   gesture. The board acts on the finger's lift, which the game reads a frame after
+   touchend, so while a held finger aims at a move the game calls pgHaptic.arm(true)
+   and the lift's own touchend plays the tick. pgHaptic.tick() (the move itself) then
+   finds it played. A tap too quick to arm ticks from tick() at once, just after the
+   lift. Elsewhere it is unsupported and does nothing. */
+(function () {
+	var probe = document.createElement('input');
+	var supported = !('vibrate' in navigator) && ('switch' in probe);
+	var lastUp = -1e9;
+	var armed = false;
+	var armedFired = -1e9;
+	var api = window.pgHaptic = { supported: supported, pending: false, pendingAt: 0, fired: 0, tick: function () {
+		if (!api.supported) { return false; }
+		/* The lift that made this move already played its tick (arm). */
+		if (performance.now() - armedFired < 400) { armedFired = -1e9; return true; }
+		api.pending = true;
+		api.pendingAt = performance.now();
+		/* The finger already lifted (a very quick tap): try at once, still close to the gesture. */
+		if (api.pendingAt - lastUp < 400) { fire(); }
+		return true;
+	}, arm: function (on) {
+		if (!api.supported) { return false; }
+		armed = !!on;
+		return true;
+	} };
+	if (!supported) { return; }
+	var label = document.createElement('label');
+	var input = document.createElement('input');
+	input.type = 'checkbox';
+	input.setAttribute('switch', '');
+	input.tabIndex = -1;
+	label.setAttribute('aria-hidden', 'true');
+	label.style.cssText = 'position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none';
+	label.appendChild(input);
+	/* Clicking the switch moves focus to it and back, inside the finger's touchend.
+	   The game must never see that: a blur reads as the window losing focus, which
+	   cancels the tap being lifted (and releases held input), so a real iPhone
+	   could not place a pin. While the switch clicks, the focus events stop at the
+	   window, before they reach the canvas. */
+	var clicking = false;
+	['blur', 'focus', 'focusout', 'focusin'].forEach(function (type) {
+		window.addEventListener(type, function (event) {
+			if (clicking) { event.stopImmediatePropagation(); }
+		}, true);
+	});
+	function fire() {
+		if (!api.pending) { return; }
+		api.pending = false;
+		/* A tick left over from a tap that never ended is dropped, not played on a later tap. */
+		if (performance.now() - api.pendingAt > 800) { return; }
+		if (!label.isConnected) { document.body.appendChild(label); }
+		var active = document.activeElement;
+		clicking = true;
+		try {
+			label.click();
+			api.fired += 1;
+			if (active && active !== document.activeElement && active.focus) { active.focus({ preventScroll: true }); }
+		} finally {
+			clicking = false;
+		}
+	}
+	['touchend', 'pointerup', 'mouseup'].forEach(function (type) {
+		document.addEventListener(type, function () {
+			lastUp = performance.now();
+			if (armed) {
+				armed = false;
+				api.pending = true;
+				api.pendingAt = lastUp;
+				armedFired = lastUp;
+			}
+			fire();
+		}, { capture: true, passive: true });
+	});
+})();
+</script>
+<script>
+/* Shader link-ahead. Godot's GLES3 renderer links a material's programs one at a
+   time and waits on each (its colour, instanced and two depth modes together, then
+   the shadow and additive-light variants when first drawn). Chromium links in
+   parallel on its own threads and caches linked programs across contexts, so when
+   Godot links a scene program in colour mode, the modes it links next are made
+   from the same source text (only a define line differs) and linked ahead in a
+   second, hidden WebGL2 context; Godot's own links of them then hit the cache.
+   Lit user shaders also get their additive-light variant linked ahead, from the
+   specialisation defines of the last additive program seen (or the desktop
+   ones to start). With the game's manifest of every material's first program
+   (see start() below) the whole boot's programs are linked ahead as soon as
+   Godot has linked its first one. Chromium only; window.__linkAhead counts
+   predictions and hits for the tests. */
+(function () {
+	if (navigator.userAgent.indexOf('Chrome/') < 0 || typeof WebGL2RenderingContext === 'undefined') { return; }
+	var NL = String.fromCharCode(10);
+	var P = WebGL2RenderingContext.prototype;
+	var link = P.linkProgram, getExt = P.getExtension;
+	var MARK = '#define MAX_ROUGHNESS_LOD';
+	var MODES = [NL, NL + '#define USE_INSTANCING' + NL, '#define MODE_RENDER_DEPTH' + NL, '#define MODE_RENDER_DEPTH ' + NL + '#define USE_INSTANCING' + NL];
+	var SPEC = ('DISABLE_LIGHTMAP DISABLE_LIGHT_DIRECTIONAL DISABLE_LIGHT_OMNI DISABLE_LIGHT_SPOT DISABLE_REFLECTION_PROBE DISABLE_FOG '
+		+ 'USE_DEPTH_FOG USE_SUN_SCATTER USE_RADIANCE_MAP USE_LIGHTMAP USE_SH_LIGHTMAP USE_LIGHTMAP_CAPTURE USE_MULTIVIEW RENDER_SHADOWS '
+		+ 'RENDER_SHADOWS_LINEAR SHADOW_MODE_PCF_5 SHADOW_MODE_PCF_13 LIGHT_USE_PSSM2 LIGHT_USE_PSSM4 LIGHT_USE_PSSM_BLEND BASE_PASS '
+		+ 'USE_ADDITIVE_LIGHTING APPLY_TONEMAPPING ADDITIVE_OMNI ADDITIVE_SPOT RENDER_MATERIAL SECOND_REFLECTION_PROBE '
+		+ 'LIGHTMAP_BICUBIC_FILTER RENDER_MOTION_VECTORS').split(' ');
+	var def = function (names) { return names.map(function (n) { return '#define ' + n + NL; }).join(''); };
+	var additive = /Mobi|Android/.test(navigator.userAgent) ? null
+		: def(['DISABLE_LIGHTMAP', 'DISABLE_LIGHT_OMNI', 'DISABLE_LIGHT_SPOT', 'DISABLE_REFLECTION_PROBE', 'DISABLE_FOG',
+			'USE_RADIANCE_MAP', 'SHADOW_MODE_PCF_5', 'LIGHT_USE_PSSM2', 'BASE_PASS', 'USE_ADDITIVE_LIGHTING']);
+	/* The specialisation Godot links a material's four modes with (_initialize_version). */
+	var BASE = def(['DISABLE_REFLECTION_PROBE', 'USE_RADIANCE_MAP', 'BASE_PASS', 'APPLY_TONEMAPPING']);
+	var stats = window.__linkAhead = { ahead: 0, hits: 0, waited_ms: 0, off: false };
+	var gl2 = null, exts = [], pending = new Map();
+
+	/* Mirror the extensions Godot turns on: they change how shaders are translated. */
+	P.getExtension = function (name) {
+		if (this !== gl2 && exts.indexOf(name) < 0) { exts.push(name); }
+		return getExt.call(this, name);
+	};
+	function ctx2() {
+		if (gl2 === null) {
+			try {
+				gl2 = document.createElement('canvas').getContext('webgl2') || false;
+				if (gl2) { gl2.__linkAhead = true; }
+				if (gl2 && !getExt.call(gl2, 'KHR_parallel_shader_compile')) { gl2 = false; }
+				if (gl2) { exts.forEach(function (n) { getExt.call(gl2, n); }); }
+			} catch (e) { gl2 = false; }
+			stats.off = !gl2;
+		}
+		return gl2;
+	}
+	/* Split a scene shader stage into [head, spec defines, middle, mode, rest]. */
+	function parse(src) {
+		var i = src.indexOf(MARK);
+		if (src.indexOf('#version') !== 0 || i < 0) { return null; }
+		var j = src.indexOf(NL, i) + 1;
+		var mode = -1;
+		for (var m = 3; m >= 0; m--) { if (src.substr(j, MODES[m].length) === MODES[m]) { mode = m; break; } }
+		if (mode < 0) { return null; }
+		var a = src.indexOf(NL) + 1;
+		if (src.substr(a, 23) === '#define USE_HALF2FLOAT' + NL) { a += 23; }
+		var b = a;
+		for (;;) {
+			var e = src.indexOf(NL, b);
+			var line = src.slice(b, e);
+			if (line.indexOf('#define ') !== 0 || SPEC.indexOf(line.slice(8)) < 0) { break; }
+			b = e + 1;
+		}
+		return [src.slice(0, a), src.slice(a, b), src.slice(b, j), mode, src.slice(j + MODES[mode].length)];
+	}
+	function make(p, spec, mode) { return p[0] + spec + p[2] + MODES[mode] + p[4]; }
+	function ahead(vs, fs) {
+		var key = vs + fs;
+		if (pending.has(key)) { return; }
+		var g = ctx2();
+		if (!g) { return; }
+		var prog = g.createProgram();
+		[[g.VERTEX_SHADER, vs], [g.FRAGMENT_SHADER, fs]].forEach(function (s) {
+			var sh = g.createShader(s[0]); g.shaderSource(sh, s[1]); g.compileShader(sh); g.attachShader(prog, sh); g.deleteShader(sh);
+		});
+		link.call(g, prog);
+		pending.set(key, { p: prog, t: performance.now() });
+		stats.ahead += 1;
+	}
+	function sweep(now) {
+		pending.forEach(function (v, k) {
+			if (now - v.t > 30000) { gl2.deleteProgram(v.p); pending.delete(k); }
+		});
+	}
+	/* The modes Godot links after a material's first program, always, and its
+	   additive-light variant if it is a lit user shader. */
+	function siblings(pv, pf) {
+		for (var m = 1; m < 4; m++) { ahead(make(pv, pv[1], m), make(pf, pf[1], m)); }
+		if (additive && pv[2].indexOf('#define FRAGMENT_CODE_USED') >= 0
+			&& pf[4].slice(0, 4000).indexOf('#define MODE_UNSHADED') < 0) {
+			ahead(make(pv, additive, 0), make(pf, additive, 0));
+		}
+	}
+	/* The manifest (scripts/web/link_ahead.gd, tools/web/link_manifest.py): every
+	   material's first program, as line diffs against the first one Godot links
+	   (its default material). Once that reference is seen and hashes as recorded,
+	   all of them and their siblings are linked ahead at once, in boot order. */
+	var ref = null, started = false;
+	function fnv(s) {
+		var h = 0x811c9dc5;
+		for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+		return h >>> 0;
+	}
+	function patch(src, ops) {
+		var a = src.split(NL), out = [], i = 0;
+		ops.forEach(function (op) {
+			if (typeof op === 'string') { out.push.apply(out, op.split(NL)); } else if (op >= 0) { out.push.apply(out, a.slice(i, i + op)); i += op; } else { i -= op; }
+		});
+		return out.join(NL);
+	}
+	function start() {
+		var man = window.__linkAheadManifest;
+		if (started || !man || !ref) { return; }
+		started = true;
+		if (fnv(ref[0] + ref[1]) !== man.ref) { stats.stale = true; return; }
+		stats.manifest = man.progs.length;
+		/* extra: programs the rules miss (say, an instanced material's additive
+		   or shadow variants), as [material, vs diff, fs diff] against that
+		   material's first program (-1: the reference); linked right after it. */
+		var extra = {};
+		(man.extra || []).forEach(function (e) { (extra[e[0]] = extra[e[0]] || []).push(e); });
+		var more = function (i, vs, fs) {
+			(extra[i] || []).forEach(function (e) { ahead(patch(vs, e[1]), patch(fs, e[2])); });
+		};
+		more(-1, ref[0], ref[1]);
+		man.progs.forEach(function (e, i) {
+			var vs = patch(ref[0], e[0]), fs = patch(ref[1], e[1]);
+			var pv = parse(vs), pf = parse(fs);
+			if (!pv || !pf) { return; }
+			ahead(vs, fs);
+			siblings(pv, pf);
+			more(i, vs, fs);
+		});
+	}
+	window.__linkAheadGo = start;
+	P.linkProgram = function (prog) {
+		if (this === gl2 || stats.off) { return link.call(this, prog); }
+		var vs = null, fs = null;
+		try {
+			var sh = this.getAttachedShaders(prog) || [];
+			for (var k = 0; k < sh.length; k++) {
+				if (this.getShaderParameter(sh[k], this.SHADER_TYPE) === this.VERTEX_SHADER) { vs = this.getShaderSource(sh[k]); } else { fs = this.getShaderSource(sh[k]); }
+			}
+		} catch (e) { vs = null; }
+		if (vs !== null && fs !== null) {
+			var now = performance.now();
+			var hit = pending.get(vs + fs);
+			if (hit) {
+				/* Let the early link finish first, so this one is a cache hit. */
+				var t = performance.now();
+				gl2.getProgramParameter(hit.p, gl2.LINK_STATUS);
+				stats.waited_ms += performance.now() - t;
+				gl2.deleteProgram(hit.p);
+				pending.delete(vs + fs);
+				stats.hits += 1;
+			} else {
+				var pv = parse(vs), pf = parse(fs);
+				if (pv && pf && pv[3] === 0 && pf[3] === 0 && pv[1] === BASE && pf[1] === BASE) {
+					/* A material's first program. */
+					siblings(pv, pf);
+					if (ref === null) { ref = [vs, fs]; start(); }
+				} else if (pv && pv[1].indexOf('#define USE_ADDITIVE_LIGHTING') >= 0) {
+					additive = pv[1];
+				}
+			}
+			if (gl2) { sweep(now); }
+		}
+		return link.call(this, prog);
+	};
+})();
+</script>
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="status">
+			<img id="status-splash" class="show-image--false fullsize--true use-filter--true" src="index.png" alt="">
+			<progress id="status-progress"></progress>
+			<div id="status-notice"></div>
+		</div>
+
+		<script src="index.js"></script>
+		<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":2779864,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>
+
