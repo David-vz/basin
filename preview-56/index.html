@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Basin</title>
+		<meta name="description" content="Shape islands that hold the rain.">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		<meta name="apple-mobile-web-app-title" content="Basin">
+		<link rel="manifest" href="index.webmanifest">
+		<!-- The page Basin runs in (docs/web-build.md): Godot's own shell, plus what keeps it
+			 playable when the network, the storage or the graphics fail. The dollar words are
+			 filled by the export, the __BASIN ones by addons/basin_export once every file is there. -->
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	color: white;
+	background-color: #1f2847;
+	overflow: hidden;
+	touch-action: none;
+	overscroll-behavior: none;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
+#status {
+	background-color: #1f2847;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+}
+
+#status-splash {
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress {
+	display: none;
+	bottom: 10%;
+	width: 50%;
+	margin: 0 auto;
+}
+
+/* A message over the page, on the game's own paper (docs/interface.md). */
+.basin-over {
+	position: fixed;
+	inset: 0;
+	z-index: 5;
+	display: grid;
+	place-items: center;
+	padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+	box-sizing: border-box;
+	background: rgba(15, 18, 38, 0.6);
+	touch-action: auto;
+	overflow: auto;
+}
+
+.basin-over.alone {
+	background: #1f2847;
+}
+
+.basin-over.aside {
+	place-items: start center;
+	background: none;
+	pointer-events: none;
+}
+
+.basin-over > div {
+	box-sizing: border-box;
+	width: min(100%, 400px);
+	padding: 18px 20px;
+	border-radius: 16px;
+	border: 2px solid #b79f72;
+	background: #fbf3df;
+	color: #3a2f2a;
+	font: 600 16px/1.4 system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	pointer-events: auto;
+}
+
+.basin-over h2 {
+	margin: 0 0 6px;
+	font-size: 20px;
+	line-height: 1.2;
+}
+
+.basin-over p {
+	margin: 0 0 14px;
+}
+
+.basin-over textarea {
+	box-sizing: border-box;
+	width: 100%;
+	height: 88px;
+	margin: 0 0 12px;
+	padding: 8px 10px;
+	border-radius: 10px;
+	border: 2px solid #b79f72;
+	background: #fffaf0;
+	color: inherit;
+	font: 16px/1.35 ui-monospace, Consolas, monospace;
+	resize: none;
+}
+
+.basin-over .row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.basin-over button {
+	flex: 1 1 auto;
+	min-height: 48px;
+	padding: 0 18px;
+	border-radius: 12px;
+	border: 2px solid #463a32;
+	border-bottom-width: 5px;
+	background: #e3d8c3;
+	color: #3a2f2a;
+	font: inherit;
+	font-weight: 800;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+.basin-over button.main {
+	border-color: #5a3512;
+	background: #f7b64e;
+	color: #43260c;
+}
+
+.basin-over button:focus, .basin-over textarea:focus {
+	outline: 3px solid #155672;
+	outline-offset: 2px;
+}
+		</style>
+		<script>
+/* The page's part of the game: which build this is, what it keeps, how it starts again.
+   The game talks to it through scripts/web/page.gd. Nothing here may throw. */
+(function () {
+	var BUILD = '6b07e097105b', SRI = {"index.clim_etc2.pck":"sha256-0VVPR8RUToHvt/Jw+7PZkl/T3lbhPEYpIvr+ediF2LI=","index.clim_s3tc.pck":"sha256-11oT9z0hVGS/Rp0XGMpsHtToHsfOzyLI/JNgA7+Ih6U=","index.links_high_blob.json":"sha256-cbp9lljrYn9PxrCpkfYgsBUbyaRJKF56EGYV0VocuUo=","index.links_high_goo.json":"sha256-xQ/cB6kBERkQnGbL9sX8TKUCc76ugwMyFjFTXMX8rz4=","index.links_high_off.json":"sha256-Pu1kd9fxxgm34IJuWD99jIYx68fIa7fsk7YdCF5KFaA=","index.links_low_blob.json":"sha256-GdppVX9HHCjVKsOEW5/INsaGoWrZJVC7QZZpl4YzyYA=","index.links_low_goo.json":"sha256-xLtcrQCpsIMoYGK41ihKjKJ0OabbLc22FBMg3D3w4TA=","index.links_low_off.json":"sha256-BQnxi3bi7h01KVIwwFNJxOHYS1f0irHb79gm6v8Ctuk=","index.mus_autumn_01.ogg":"sha256-Fdsn4ItLBRYhPjujbFl+rzTsjk6qaSOtrLIb7nC/pn8=","index.mus_autumn_02.ogg":"sha256-7/q+4oAIEh+fkJwcRvQJjZIpiGX7EJex/Br7o/+mwwE=","index.mus_autumn_03.ogg":"sha256-G9bt8j6C8FpXGd/g7HfrYaJazg/KI/J/nXBNSydjQOs=","index.mus_autumn_04.ogg":"sha256-l3fqCcfzgXM5MI0IXHRJUhliAk0IUgcq+Mu/l8EKC2I=","index.mus_autumn_05.ogg":"sha256-1PzZDtPOta5r+v9xTYpUd3rZVUf1ANvp/HcPhWnEbZI=","index.mus_autumn_06.ogg":"sha256-iBl3PRc4wDN9IhEIh42dhmTP6jhoTfHVDqrE6PG3f4k=","index.mus_autumn_07.ogg":"sha256-Yy3aBnS957ejiqtAzCTpv6v1xJYxVaeAKnmKF+C6h80=","index.mus_autumn_08.ogg":"sha256-dNd/lVlZXKm/g8rWbfzD1nZ9J0TKJtsS2e9FNITdsJk=","index.mus_autumn_09.ogg":"sha256-bah4ueNLgmTUCNgVhfn28oPU+4717YBd09FH1EFwg6c=","index.mus_autumn_10.ogg":"sha256-3Zf2L/JajbM6JL4BJDKu/joA5qb0pAnsAyuB+lHiTcQ=","index.mus_autumn_11.ogg":"sha256-PMtw07xCJbIpFGqoqghehg+pwVLMBhq3rkqE4pCv7g4=","index.mus_autumn_12.ogg":"sha256-M/8PFHsVpeYC1Bj2zwoKCoU2nGpu/dsK2DqWGPKUSP0=","index.mus_autumn_13.ogg":"sha256-aNz8Fhgy+Nd7UHe4Ma/1HyrQRgB++xsvm/5QbqbV96E=","index.mus_autumn_14.ogg":"sha256-nEs6EV2AL92C4VvN//+kJFl8XIxJr9hR/r8HWdmBrOQ=","index.mus_dusk_01.ogg":"sha256-I+xi3bJNHlZaxkjHiXDkQCaL49cwlMv/kr6BIWNbC/o=","index.mus_dusk_02.ogg":"sha256-0QAO6dXYvpXEau7jWMtNstRHEypC+/brwnv3YYCpiGo=","index.mus_dusk_03.ogg":"sha256-fIBxsaxRQ7ZUTiWukTYqa/HQv82dj9kBJf/sBQE8AsI=","index.mus_dusk_04.ogg":"sha256-t9uDHmnvBGhHxgTqEAm9nZD2nkuSUuXzuOTrTAkfvlY=","index.mus_dusk_05.ogg":"sha256-LsshrMMvwma1vV5XJwpMwhm6PbGM0aQwexIPk837lPk=","index.mus_dusk_06.ogg":"sha256-1dALiT5HuY4iFAKstJiV+J2iGRVsiTLh66srlzh2RSY=","index.mus_dusk_07.ogg":"sha256-lH6V9rezDZF6APKqSwyQdgc+1e6sFMCzdk4hJLnGb2Y=","index.mus_dusk_08.ogg":"sha256-DoThNS/3m+lgva4D1pwNSAsw+Ls0fbBdzgvNYHc0ykc=","index.mus_dusk_09.ogg":"sha256-O44KkWKLsUdoGEicYOoLi6h5MHqQ8UHSabv8kt93cqQ=","index.mus_dusk_10.ogg":"sha256-UcojrtDV9rzXa8qeb4kzaXToTerIZxl44znxiWQK1ic=","index.mus_dusk_11.ogg":"sha256-J1RtyOUIZLaO9y1O761O/GNCVb/WakPH7c0CJhZKMBQ=","index.mus_dusk_12.ogg":"sha256-qZ1kx3jyW8A2oEMOAHzlI740rnD3EJW+bT442QiCPBY=","index.mus_frost_01.ogg":"sha256-ILwSN2WsC6egNAkc8mtdzzcADO9b9niZVQiuvPYqOI8=","index.mus_frost_02.ogg":"sha256-q7B8dT0jCX6xwSWVt85Nc/gadDy+s5q1pjp2JW8kT5c=","index.mus_frost_03.ogg":"sha256-5Gtp3UCXJLUKaPOVgD16p1zQVh1m0rl7Lvt48IclJE8=","index.mus_frost_04.ogg":"sha256-PU+On1jQGXainIGdDEALlWFP9JZd7A/v6ZdrtowJNHg=","index.mus_frost_05.ogg":"sha256-Kcv8+zrE0JvPqUUlBR2y1scjXt3WfItDZAlI+Ez4+ws=","index.mus_frost_06.ogg":"sha256-2mvrtvBhlV06rt0j539vc1TGCYJpuOaZowaCFJnyjxc=","index.mus_frost_07.ogg":"sha256-oqHHqSFK+wNPzf6BBt/MSGubFZcZAowZZZrX9QJMMUI=","index.mus_frost_08.ogg":"sha256-GFqg6Rz/oKkJVJihbGgZ+G9QXA02g+lBGUuRQ6zI2hY=","index.mus_frost_09.ogg":"sha256-n8MNtR9EIPgpirRRLtK2k6d7kkkgKmfZz5tqu4bfjQg=","index.mus_frost_10.ogg":"sha256-wmvNVlfDKqGYr4q6hWZK+F5fj1lTa4MQhGb5zJZtYKs=","index.mus_frost_11.ogg":"sha256-5Yw3exC1KtYMlGbZ/y7/t44cEPCzYpCngM/L19LY6DA=","index.mus_frost_12.ogg":"sha256-tYhHHquoM3/LBmhmmCRDauz/Q23vwgb8YF+y0u/mHhQ=","index.mus_frost_13.ogg":"sha256-TiIayjFm2nH0lirwbRfJDIGiavYobdo0rrAYZksa0UY=","index.mus_golden_01.ogg":"sha256-4J7r+Re5jUMx9pIuQcIX/FWKETxdB4gQ+CmN2Yzeb2Q=","index.mus_golden_02.ogg":"sha256-fnOUvnG2bikq1n9DUNMitbrk4akiAh1eoLeV2S/hDdg=","index.mus_golden_03.ogg":"sha256-5G4HFQ+8P52V9WaQeLhK+tSheahNcz07CdYGra37Z1o=","index.mus_golden_04.ogg":"sha256-B/3moJo+tFvvEWEEdNhUrDCnCb8ePK7uu/0aCgb0JSg=","index.mus_golden_05.ogg":"sha256-Wk5eiuBmrWSoQmGclWSaM/hyVg4/x7U3Dk2uJbLUzXQ=","index.mus_golden_06.ogg":"sha256-kuXT7xUauZOtHy8T7BHPqak3bRp1UD/OyeRvU1xul1s=","index.mus_golden_07.ogg":"sha256-LVBs6z2HE4La0UtHwY2tOxw+BLDz2FU0U16h99tigM8=","index.mus_golden_08.ogg":"sha256-puZ+NHCQA51Cg11FvtTNhLy0c05FNYUDopaGj9h/q7c=","index.mus_golden_09.ogg":"sha256-Zm2hfPqZ88nYgO+yyScujAK5VMuf/VXcdNzuoq9hGOQ=","index.mus_golden_10.ogg":"sha256-UEEyUOBRrJKHfGpKBCMPEVus+aWLBdTaTrSyB8DKu/c=","index.mus_golden_11.ogg":"sha256-i/Si2mh9xF5cuIrJo262T1JUAkh6HY0bd/cXqsp/vKo=","index.mus_golden_12.ogg":"sha256-PKWWL8EmzZUq0idpurTFKrRt0QDrjfHr9V6CGCGUTto=","index.mus_golden_13.ogg":"sha256-/vSl+ej2XluuFFuvHHFiO5lqvXDl166FJsEy32uxaF4=","index.mus_golden_14.ogg":"sha256-FcuX3wpdR7jVilbs5T10BGWCWKcxnJXH/iMQ9wrA2y8=","index.mus_golden_15.ogg":"sha256-grwPapo3TTC4ELIpJbpdAgm/PwpndJwtV6noT6EB6gU=","index.mus_golden_16.ogg":"sha256-TCLxehDpumxjZIXsSD8ox+lvcNl/Vg3mZ3pXlhOH+kQ=","index.mus_meadow_01.ogg":"sha256-OwcBwJsfjhlQkUbJH10xtsiXAw8i+U6Uhx5MeORphfY=","index.mus_meadow_02.ogg":"sha256-Br3y53F+kCl/hxBc0e925MPOA2a3dRWLVrCvSbVWd/U=","index.mus_meadow_03.ogg":"sha256-5EXhXVXqgmGstVOFQf9Lb21I8gtn93fc6Olge4rd47E=","index.mus_meadow_04.ogg":"sha256-JrCof3zimLygmWdpGHu0ZML+b2qHcP3bhjnFynedxEA=","index.mus_meadow_05.ogg":"sha256-wtu1TVFC9qb5DiQ9DW6vDJe2e3UuD9JX+h9Qa7nqE5k=","index.mus_meadow_06.ogg":"sha256-sRumS5RGffslEHpmTo7fjt31SmkHY6uog0hvrGxW4PE=","index.mus_meadow_07.ogg":"sha256-QVs71bcFl5E2obutHqDXiDfwwfdwCofjerOrbU4pFjg=","index.mus_meadow_08.ogg":"sha256-06f4l97+ojXX7Exy4H9bRmqwm9yBSJmpa/F3sgcmHoc=","index.mus_meadow_09.ogg":"sha256-yYda1ri5rkOoXE1BvpthRAhJ7i1uMAWMuUQuXMY+DEM=","index.mus_meadow_10.ogg":"sha256-FAg6kXHEtj97UjmoFP/H30qE14iXo1QYmDMItfAZSOg=","index.mus_meadow_11.ogg":"sha256-xJdfYMlR4F0aHqsOXSgI/eCDveoL+9EMrHgOw0T+ePI=","index.mus_meadow_12.ogg":"sha256-LCvi/gvsKsoLss6ud8kitE50uRMX2h/hsBiyKOzovug=","index.mus_meadow_13.ogg":"sha256-lkdYnFSMRb8Mt9jp8G6/EvenMvqLWTs1bPPLEHq4kq4=","index.mus_meadow_14.ogg":"sha256-aHzJ2mOYqTDiWs2brFj0HChw6cQOd08ppBC+ci3ru4s=","index.mus_meadow_15.ogg":"sha256-jStEPdWr6Rs9n3d+w/5i3y39266XPc/fkMnWNE9yADo=","index.mus_meadow_16.ogg":"sha256-hRCtoGNuj9tlCaN8TDXiJn8BoNIXwHgJeniCuwDQnKk=","index.mus_meadow_17.ogg":"sha256-OHvcRlnYdip/jeOhQmPuaQynA7KBR+w4sLtb41rX+YA=","index.mus_meadow_18.ogg":"sha256-pZTudo7bKM7N3Y4HCsXaUPt/e8MLVMfArUyux8NvMVw=","index.mus_meadow_19.ogg":"sha256-2l+zOowK3/3kMoRLmDY/XTSHZabyhhqIZ2iwUarq+IU=","index.mus_oasis_01.ogg":"sha256-yUczDoGWN2d9m8IDE4RdFAjvP5Vq7B1MAJjk/hH1eYM=","index.mus_oasis_02.ogg":"sha256-NcT2AjcqrKzU10zK0O6MGV1/0v2MCvWN0uo2Cfn3GP4=","index.mus_oasis_03.ogg":"sha256-p4eTQTYsPoab/z2JMmNwOByN1ApVA2XnDxCY9PJM/8k=","index.mus_oasis_04.ogg":"sha256-0YSf10yg5nxj+EpQX1Ta6N9jAY5x/80H5/BKfSfupkI=","index.mus_oasis_05.ogg":"sha256-Y3zPjTMoKsoi04Y4Y0lV1vIvDYN8PgP5pa36TiIDtGw=","index.mus_oasis_06.ogg":"sha256-WlW7h5vE++NPOl6saNQt5mMDWzGaADdybs+pkrTiuN8=","index.mus_oasis_07.ogg":"sha256-qnv+bk6aLoIV2w9cUYECLd6fJOQTkAq8EJwF4oOBaK8=","index.mus_oasis_08.ogg":"sha256-D71wYCwSrjpPjudwvHMKZ3G5Xct1flmhzXlpcwFbXQA=","index.mus_oasis_09.ogg":"sha256-/Uq8q0771fVbBLCZx8disD1QWbYqZD2V5Nq2otWWKFU=","index.mus_oasis_10.ogg":"sha256-WCvciKxliX575QVUAIrHy2LnUGXbrWiYBoKnrcopa0c=","index.mus_oasis_11.ogg":"sha256-FG1xUqem39Ou60P/kjmcudgGvoXueJ1q5wQy5LzMWBc=","index.mus_oasis_12.ogg":"sha256-hDr7k6UmWpbwzG4SGTr8Haz1srBcvyiC5vmbCvDSxKU=","index.mus_results_01.ogg":"sha256-JoYU1NxsXyqMTnqF56pCwtaNHgqvP+uzqeQsT7UFjhg=","index.mus_results_02.ogg":"sha256-bH4PKH7VBwfikAS/hkjXrdUKInTqihnsf6YrC1K87Fk=","index.mus_results_03.ogg":"sha256-8kZIyhbtvyLNkQlRADWDjDXXYwEbtfsrgEqd2LA27V8=","index.mus_results_04.ogg":"sha256-llnsufkIAjf40FWrAPSg45OoZ7ZMBfKgaKBQ5Eft8PQ=","index.mus_results_05.ogg":"sha256-YnWdEwhrrBAc7BCHWsL2XButWAPxfVPkgxH2GL2Ln54=","index.mus_results_06.ogg":"sha256-Y313VR3ES297zdHCY0yVE5dpOmsRnR3xuBLmmg987aM=","index.mus_results_07.ogg":"sha256-SOXYI1Efcwrk6Zwu7xOkMR/Xh2CLcCVL0jG4Gj4DavU=","index.mus_results_08.ogg":"sha256-qYW1HJN/x57KI0CIKjii27BKkYzT6Ntf4XBjpm51J44=","index.mus_title_01.ogg":"sha256-aBVQFsQjoRP4Tz85V4Rkdt119HoImT8yeoYFvvNqKWU=","index.mus_title_02.ogg":"sha256-buvFyzD2JqQeKXA/yLoBI4le+nEH7iykhazSamWphYg=","index.mus_title_03.ogg":"sha256-QA+ALZcd4OfKeRyekNGpjRkeyAOasDibtsMV5Iqhjl0=","index.mus_title_04.ogg":"sha256-SzcPzUQlmOWIRu64TpnFeqF2BGdvMc+We8RUk7kb6gg=","index.mus_title_05.ogg":"sha256-rOCaIuripWNyK6ZfTzLiUsdoaBbbLKzgBarxPnkioOA=","index.mus_title_06.ogg":"sha256-h+6mGjGYFm4ig9BPfBP6UvTmuwEy04GUrSd7jJdXrV4=","index.mus_title_07.ogg":"sha256-OffNjsVK/o4xJtOP44YHjktM3g3RoWouwgK7PMy34oA=","index.mus_title_08.ogg":"sha256-/e2J8RvxmoGGW4O2XnrMVY/g65ONlWTTUArBXbBU1uQ=","index.mus_title_09.ogg":"sha256-2cdBZMGAeirZWNbMYxvW/0bc683m6fYZMcj2B9W+faQ=","index.mus_title_10.ogg":"sha256-x5oUi+rwrz0WTzcuhAaIKDBlhP+49OuxLLlMudZDrGc=","index.mus_title_11.ogg":"sha256-XXaNJSTNUwZMrvitvhMs93YwKXp2By7QetmUFmYzAVc=","index.mus_title_12.ogg":"sha256-q0WGHNaxwlQqieYnIkQVYysn+xFteKdapSBTs91Pvtc=","index.mus_zen_01.ogg":"sha256-s9uBzV5vTqyWzMSpxwTifORzkuVwaiwfmyNnHu3vwms=","index.mus_zen_02.ogg":"sha256-AVcaJA/qmd4p0QbpIRcz4fycFsf4ZgJlF0xWsNNjA/I=","index.mus_zen_03.ogg":"sha256-IKpxE6hxyHpxvkxLtFvx5Qessnts8wZDg/AwaNHFvPg=","index.mus_zen_04.ogg":"sha256-IUINTbrcHnJRu/zn9zNdx8tyZAp3yi0AIjFOBuIXiJE=","index.mus_zen_05.ogg":"sha256-yv788ZPV+iO+hNaJcyyya/zF4xTud0DJXQDO3Fo0Wm8=","index.mus_zen_06.ogg":"sha256-eYzzaRV/kSozeD+C5q7BeNv+vHgmxnuHlSjY9sxq538=","index.mus_zen_07.ogg":"sha256-zthZy3z9vv/nNLNomcFFnhxR+YhmbEQz1SiuU7Ckmug=","index.mus_zen_08.ogg":"sha256-6FjRJwL56qa1VIKcPLWVw+GAY+6ZDweylZWUETBp9RE=","index.mus_zen_09.ogg":"sha256-J9yQQfujnN7nnOnyJG/tE8WUVAQcz2rnOaOsYMBYhWw=","index.mus_zen_10.ogg":"sha256-JGySP4noLXFcPFncGPYBKu5bNZEaBtNMKziJUNmrfpo=","index.snd.pck":"sha256-cDV66I5pb+gK/bmZahPRKI3WKOFnDXCVqfq0jqy0AOY=","index.tex_etc2.pck":"sha256-Yphh3+AkyffllI7Ny8zBOWJU83hcP8qPJRxtMG8maaU=","index.tex_s3tc.pck":"sha256-UKbpqNJedXSkoew4C/UgCW78m6dhkipElHi1SP7Ssco="}, dev = BUILD.indexOf('__') === 0;
+	if (dev) { BUILD = ''; SRI = {}; }
+	var api = window.__basinPage = { build: BUILD, game: null, store: {}, update: false, unkept: false, offline: '', error: '' };
+	function quietly(f) { try { return f(); } catch (e) { api.error = String(e); return null; } }
+	function tell(what, arg) { return quietly(function () { return api.game && api.game(what, arg === undefined ? '' : arg); }); }
+
+	/* --- one build's files, never another's --------------------------------------- */
+	/* Each file is asked for by build, so no cache on the way hands out last week's, and
+	   every late file must be the one this page was made with, byte for byte (the engine
+	   and the main pack come as they stream: the pack carries its build, scripts/web/page.gd). */
+	var net = window.fetch, anew = quietly(function () { return sessionStorage.getItem('basin.again'); }) === '1';
+	quietly(function () { sessionStorage.removeItem('basin.again'); });
+	window.fetch = function (what, how) {
+		if (BUILD && typeof what === 'string' && /^index\.[\w.]+$/.test(what)) {
+			if (Object.prototype.hasOwnProperty.call(SRI, what)) { how = Object.assign({ integrity: SRI[what] }, how); }
+			if (anew) { how = Object.assign({ cache: 'no-cache' }, how); }
+			what += '?b=' + BUILD;
+		}
+		return how ? net.call(this, what, how) : net.call(this, what);
+	};
+	/* The main pack is of another build (the files changed while they came): once more,
+	   with a page that is sure to be new. */
+	api.mixed = function () {
+		if (quietly(function () { return sessionStorage.getItem('basin.mixed'); }) === BUILD) { return; }
+		if (quietly(function () { sessionStorage.setItem('basin.mixed', BUILD); return true; })) { location.reload(); }
+	};
+
+	/* --- what is kept ---------------------------------------------------------------- */
+	/* Small texts every tab of this site shares at once. */
+	api.store.read = function (k) { var v = quietly(function () { return localStorage.getItem(k); }); return typeof v === 'string' ? v : ''; };
+	api.store.write = function (k, v) {
+		var done = quietly(function () { localStorage.setItem(k, v); return true; });
+		if (!done) { probe(); }
+		return !!done;
+	};
+	api.store.drop = function (k) { quietly(function () { localStorage.removeItem(k); }); quietly(function () { sessionStorage.removeItem(k); }); };
+	/* This tab's own, which a reload keeps. */
+	api.store.own = function (k) { var v = quietly(function () { return sessionStorage.getItem(k); }); return typeof v === 'string' ? v : ''; };
+	api.store.setOwn = function (k, v) { quietly(function () { sessionStorage.setItem(k, v); }); };
+	window.addEventListener('storage', function (e) { if (e.key) { tell('other', e.key); } });
+	/* Neither store takes anything: the game says so, once. */
+	var probed = false;
+	function probe() {
+		if (probed) { return; }
+		probed = true;
+		function no() { if (!api.unkept) { api.unkept = true; tell('unkept'); } }
+		try {
+			var open = indexedDB.open('basin-probe', 1);
+			open.onupgradeneeded = function () { open.result.createObjectStore('p'); };
+			open.onerror = open.onblocked = no;
+			open.onsuccess = function () {
+				try {
+					var t = open.result.transaction('p', 'readwrite');
+					t.objectStore('p').put(new Uint8Array(65536), 'p');
+					t.oncomplete = function () { open.result.close(); quietly(function () { indexedDB.deleteDatabase('basin-probe'); }); };
+					t.onabort = t.onerror = no;
+				} catch (e) { no(); }
+			};
+		} catch (e) { no(); }
+	}
+	if (!api.store.write('basin.probe', '1')) { probe(); } else { api.store.drop('basin.probe'); }
+
+	/* A reload that goes straight back into the run in hand. */
+	api.back = quietly(function () { return sessionStorage.getItem('basin.back'); }) === '1';
+	quietly(function () { sessionStorage.removeItem('basin.back'); });
+	api.reload = function (back) {
+		if (back) { quietly(function () { sessionStorage.setItem('basin.back', '1'); }); }
+		location.reload();
+	};
+
+	/* --- out of sight -------------------------------------------------------------------- */
+	/* A hidden page draws no frame, and a phone may end it there: the game pauses and
+	   keeps its run inside these calls. */
+	function hide() { tell('hide'); }
+	document.addEventListener('visibilitychange', function () { if (document.hidden) { hide(); } else { tell('show'); } });
+	window.addEventListener('pagehide', hide);
+	document.addEventListener('freeze', hide);
+
+	/* --- messages ------------------------------------------------------------------------- */
+	function el(tag, text, parent) {
+		var e = document.createElement(tag);
+		if (text) { e.textContent = text; }
+		if (parent) { parent.appendChild(e); }
+		return e;
+	}
+	var shown = null, cancel = null, padWas = null;
+	/* buttons: [[label, action, main]]. how: 'aside', a line that stops nothing; 'alone', for a
+	   page with nothing else to see. */
+	function say(title, body, buttons, how) {
+		unsay();
+		var over = shown = el('div');
+		over.className = 'basin-over ' + (how || '');
+		over.setAttribute('role', how === 'aside' ? 'status' : 'alertdialog');
+		over.setAttribute('aria-label', title);
+		var box = el('div', '', over);
+		el('h2', title, box);
+		if (body) { el('p', body, box); }
+		var row = el('div', '', box);
+		row.className = 'row';
+		buttons.forEach(function (b) { key(row, b); });
+		(document.body || document.documentElement).appendChild(over);
+		var first = over.querySelector('button.main');
+		if (first) { first.focus(); }
+		padWas = null;
+		walk(over);
+		return box;
+	}
+	function key(row, b) {
+		var k = el('button', b[0], row);
+		k.type = 'button';
+		if (b[2]) { k.className = 'main'; }
+		k.addEventListener('click', b[1]);
+	}
+	function unsay() { if (shown) { shown.remove(); shown = null; } }
+	/* A controller walks a message too: the game's own walk ends at the canvas. */
+	function walk(over) {
+		if (shown !== over) { return; }
+		var now = {};
+		Array.prototype.forEach.call(quietly(function () { return navigator.getGamepads(); }) || [], function (p) {
+			if (!p || !p.connected) { return; }
+			p.buttons.forEach(function (b, k) { if (b.pressed) { now[k] = true; } });
+			if (p.axes[0] < -0.6 || p.axes[1] < -0.6) { now[12] = true; }
+			if (p.axes[0] > 0.6 || p.axes[1] > 0.6) { now[13] = true; }
+		});
+		function hit(k) { return padWas && now[k] && !padWas[k]; }
+		var all = Array.prototype.slice.call(over.querySelectorAll('button')), at = all.indexOf(document.activeElement);
+		if (hit(12) || hit(14)) { (all[at - 1] || all[all.length - 1]).focus(); }
+		if (hit(13) || hit(15)) { (all[at + 1] || all[0]).focus(); }
+		if (hit(1) && cancel) { cancel(); } else if (hit(0)) { (all[at] || all[0]).click(); }
+		padWas = now;
+		requestAnimationFrame(function () { walk(over); });
+	}
+
+	/* --- starting ---------------------------------------------------------------------------- */
+	var SLOW_MS = 12000, STUCK_MS = 60000, moved = Date.now(), done = false, started = false, up = false, slow = false;
+	/* Once more, and past whatever the browser kept of the last try. */
+	function again() { quietly(function () { sessionStorage.setItem('basin.again', '1'); }); location.reload(); }
+	function moving() {
+		moved = Date.now();
+		if (slow) { slow = false; unsay(); }
+	}
+	api.progress = function (now, of) {
+		done = of > 0 && now >= of;
+		moving();
+	};
+	api.started = function () { started = true; moving(); };
+	api.starting = function () {
+		moving();
+		var watch = setInterval(function () {
+			if (started) { clearInterval(watch); return; }
+			if (slow || document.hidden || Date.now() - moved < (done ? STUCK_MS : SLOW_MS)) { return; }
+			slow = true;
+			if (done) {
+				say('Starting is slow', 'The game is here but has not started yet.', [['Start again', again]], 'aside');
+			} else {
+				say('The connection is slow', 'Still trying to fetch the game.', [['Try again', again]], 'aside');
+			}
+		}, 1000);
+	};
+	/* It will not start. `missing`: what Godot finds the browser lacks. */
+	api.failed = function (missing) {
+		if (started) { return; }
+		started = true;
+		slow = false;
+		if (missing.length) {
+			var gl = missing.some(function (m) { return /webgl/i.test(m); });
+			say(gl ? 'Basin cannot draw here' : 'Basin cannot run here',
+				gl ? 'This browser has no WebGL 2, or it is turned off. A newer browser, or graphics acceleration in this one\'s settings, should put it right.'
+					: 'This browser lacks something the game needs. A newer browser should put it right.', [['Try again', again, true]], 'alone');
+			return;
+		}
+		say('The game could not be fetched', navigator.onLine === false ? 'There is no connection. Nothing you have played is lost.' : 'The connection failed. Nothing you have played is lost.', [['Try again', again, true]], 'alone');
+		window.addEventListener('online', again);
+	};
+
+	/* Godot drops a failed engine file on the floor: the bar would stand for good. */
+	window.addEventListener('unhandledrejection', function (e) {
+		if (!started && /Failed loading|Failed to fetch|NetworkError|Load failed|network|integrity/i.test(String(e.reason && e.reason.message || e.reason))) { api.failed([]); }
+	});
+
+	/* The graphics were taken away (a driver reset, a phone short of memory). Godot's own
+	   answer is an alert; ours keeps the run first. */
+	api.guard = function (canvas) {
+		canvas.addEventListener('webglcontextlost', function (e) {
+			e.stopImmediatePropagation();
+			e.preventDefault();
+			tell('hide');
+			say('The picture was lost', 'The browser took the graphics back. Your run is kept: this goes back to it.', [['Go back to the run', function () { api.reload(true); }, true]], 'alone');
+		}, true);
+	};
+
+	/* --- installing, and working offline ------------------------------------------------------ */
+	var offer = null;
+	window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); offer = e; tell('install'); });
+	window.addEventListener('appinstalled', function () { offer = null; tell('install'); });
+	api.canInstall = function () { return !!offer; };
+	api.install = function () {
+		var e = offer;
+		if (!e) { return; }
+		offer = null;
+		quietly(function () { e.prompt(); });
+		tell('install');
+	};
+
+	var waiting = null;
+	function ready(worker) {
+		/* Waiting with this very build (a hard reload came first): it may as well start. */
+		var line = new MessageChannel();
+		line.port1.onmessage = function (e) {
+			if (e.data === BUILD) { worker.postMessage('now'); return; }
+			waiting = worker;
+			api.update = true;
+			tell('update');
+		};
+		worker.postMessage('build', [line.port2]);
+	}
+	/* The game is up, so nothing here can slow its start: fetch what offline needs. */
+	api.up = function (tier) {
+		if (up) { return; }
+		up = true;
+		api.started();
+		quietly(function () { if (navigator.storage && navigator.storage.persist && !/Firefox/.test(navigator.userAgent)) { navigator.storage.persist().catch(function () {}); } });
+		if (!BUILD || location.protocol === 'file:') { return; }
+		setTimeout(function () { quietly(function () { if ('serviceWorker' in navigator) { enlist(tier); } }); }, 3000);
+	};
+	function enlist(tier) {
+		navigator.serviceWorker.register('sw.js?f=' + (window.__basinTextureFamily || 'etc2') + '&t=' + tier).then(function (reg) {
+			api.offline = 'waiting';
+			function watch(w) {
+				if (!w) { return; }
+				function look() {
+					if (w.state === 'installed' && reg.active) { ready(w); }
+					if (w.state === 'activated') { api.offline = 'ready'; }
+					if (w.state === 'redundant' && !reg.active) { api.offline = 'failed'; }
+				}
+				w.addEventListener('statechange', look);
+				look();
+			}
+			watch(reg.installing);
+			watch(reg.waiting);
+			watch(reg.active);
+			reg.addEventListener('updatefound', function () { watch(reg.installing); });
+			/* (Registering again need not look for a newer one.) */
+			reg.update().catch(function () {});
+			var asked = Date.now();
+			document.addEventListener('visibilitychange', function () {
+				if (!document.hidden && Date.now() - asked > 3600000) { asked = Date.now(); reg.update().catch(function () {}); }
+			});
+		}).catch(function (e) { api.offline = 'failed'; api.error = String(e); });
+	}
+	/* The player asked for it: every tab of this folder goes on with the new build. */
+	api.takeUpdate = function () {
+		if (!waiting) { again(); return; }
+		waiting.addEventListener('statechange', function () { if (waiting.state === 'activated') { again(); } });
+		waiting.postMessage('now');
+		setTimeout(again, 4000);
+	};
+
+	/* --- a save brought in ---------------------------------------------------------------------- */
+	/* Real text and file boxes, so the browser's own paste and file picker work. */
+	api.openSave = function () {
+		var box = say('Bring in a save', 'Paste a save code, or open a save file. It adds to what is here: nothing is lost.', []);
+		var row = box.querySelector('.row'), area = el('textarea'), pick = el('input', '', box);
+		area.setAttribute('aria-label', 'Save code');
+		area.spellcheck = false;
+		box.insertBefore(area, row);
+		pick.type = 'file';
+		pick.accept = '.basin,.txt,text/plain';
+		pick.style.display = 'none';
+		function shut() {
+			cancel = null;
+			unsay();
+			var c = document.getElementById('canvas');
+			if (c) { c.focus({ preventScroll: true }); }
+		}
+		function take(text) { shut(); tell('save', text.slice(0, 4000000)); }
+		pick.addEventListener('change', function () {
+			var f = pick.files && pick.files[0];
+			if (f) { f.slice(0, 4000000).text().then(take, shut); }
+		});
+		cancel = shut;
+		[['Add it', function () { if (area.value.trim()) { take(area.value); } else { area.focus(); } }, true],
+			['Open a file', function () { pick.click(); }], ['Back', shut]].forEach(function (b) { key(row, b); });
+		/* What is typed here is not the game's. */
+		box.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Escape') { shut(); } });
+		area.focus();
+		quietly(function () {
+			navigator.clipboard.readText().then(function (t) { if (/^\s*BASIN1\./.test(t) && !area.value) { area.value = t; row.querySelector('button').focus(); } }, function () {});
+		});
+	};
+})();
+		</script>
+		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+<meta name='viewport' content='width=device-width, user-scalable=no, initial-scale=1.0, viewport-fit=cover'>
+<meta name='theme-color' content='#1f2847'><style>body,#status{background:#1f2847 !important}</style>
+<link rel='icon' type='image/png' sizes='16x16' href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC10lEQVR42mWTTWhdVRSFv33ufe/l1SQlaUiQmkqqkKSFCIqlDh0EBGdCcCbOBCUDB0JBRUcOdOKkWOhIHTsVFKwoilQU/6IpFltCEkyb95/37jnn3nPOdvBSf3DDgjXZ32DtteVj/b2x26q9Xa83no9lOYUqRkT41yTVYyeKQN6oD7zzHyz2qlfyn/d4Z/rU5Ga710dV0TzDlxWgoCAi1BsNshiJoRIRgbI6OXlqdvPXqu3l0u0thzE1QhTNa8L2Dea6fciyMVDhkEi5usLk7AypqlBQyTIlJp93ytBAldxk9IY9LrY7bD67AX4ENQEzQXd/n8uffsLNC09wotkkpSRQiYg0Tcd5umVFx5d0nCcaQTPD3Tu3eP+tS2x/+zkzZ1Z4ZvlB2ts36CJ0j3fazms+8hGAzBiOXKQKASHQ73R588NrvBBmWLm4Tm4SaThi4AL4AGIAJHf2HkBxNqJRIQxZeGCRq1fe5dzDS4gMOdjbpXUE015JRQQzvsz/ASlB9GTJ8uh8ZCLrg59m+dwKp3d+YK/vqFcJlTHAOBu5J2sToQpgIge7t3nxpTd47eXXObj1BwvLS6xPK939FmUlOBtwNpJbG/7OwNpICAGCp+h0+frxDapWi42bOywsLXAiU8pBQdGcIoUACLmz6RgArogkTag9Ymp2hqdn73J27RFWzp9F+m0O/zzA3fcQdRuIIY0BvijHxgi+qJCJhFQj5uZPcuW5C2CEIhT88sV1rv24gz75FG5gSQioah6HbtxagSwZtr//jo9a1xmmDBGIMdHv9Pnqtzv8tLaBKQOhdCiCiEgej5xDTD2lILVaQ75Ji2x9uYXmNURBxeAa8wzX1klzp6HTAySJGFSjy9PIXaU5uamugpFnsLBK//7zoP98oxiDxArp9lAREDGmOUUqhu9l7sxjn+WJpgZW1VcNrBWs4z8qCpIrSVVEy5g0ai/a0eXB4eGrfwEHYLa7dMZ0owAAAABJRU5ErkJggg=='>
+<link rel='icon' type='image/png' sizes='32x32' href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAG4UlEQVR42q2XXYxdVRmGn2/tfX5mWqY/VIahQixTpmih+NNWKNZSEhKgIgL2wihYDfgTbkgkRmJiY6IXJVEJCQlGY0W0MTHBGxPiDSZQi1CbAi2lP7S0QDttpx1m5szZZ++91vo+L85U6DB7ErQ7OTdn7Xz7Xe/7ft96l5iZiIgBbD1z9J60Vv+exbjSzOYZiPD/PQYIGCLjLk12+rJ48tuLljzTXTSRzWZuOaTvjb79ZL3R+JYZ+CLH1LiQjzih1mwiBkVe/G7hoiu+/zoEAfjF8YO/XzAw8M2x4ZMREETcB3duZmCzABJABEFmZQIzRbB5/f3J2MmTT/9g8dB98vPjh77SaDb/WmadYFh6XgkRTJVaT5Ok3nif0GmlTQ31npDn3TfEnfvkzJKI+J6+vlp7fOz2tFOWD4U0sRDDh+CbGUmjwYm9+xh/660pNacVThLSnia9lw2waOlSEhF8liHOzcaGWPCWx/iAPHx4zzji+rqiv+85U6XW28upnTtZvP1lli+7mhhL3DRbqhmTWYejJ05woN1iwd130n/NcsrJdjUIM3O1mkQfTqWdqH2gTOfWohISx+mXdvGjjXcztPoL0ySwDxgAwPPm7pfZ8svHOHLXXVy6ehW+XQlCyHNwrj/thNitMV0yU7wPqBl50SHGjFhMIhgacpxFJE3BNbognGPpZ1bz6E9/yAM//hlnrxyk2dtEQ5jBN1N/xUjaiXFmmlRJQsSr4oAkMRAQItmZYxzZ8xK4Gkuu/TzzF1+FqeHbZ1hw5VVsuHaQp1/4J5d/+Xb8+ATM4odZAbgYCWZ0JYqoemqpMHzsMH/8wzMojsErX2TTwz9hzsJLEDFMPUODlxN2HaWtRgwRkuoWTn2oWFTDBSWqTekTMY0gCRPtkn+/MUKtVmf/kRGuv20/K29ejOYZqUJPPUWznLKMaJx9hqTBayUD4hVTEOsygEZI6xTtnJMLP8bcG28k37aNZt8loGV3PRpFp00MkeAV9QrVCpCGWRgQb6gahoEFhIiWJUOfXcmdK/dThMCtj/+Ka1YMEdqtrtV8h+F33iZEIwYjhnMA5H9jQNUQs+7uUKws6L9sgEe3PAImUEuI7XFEXBcoxquvHaSc/0lihOAVnFROxjSEagB4JSpdE2oEVUyMIp8EAoIgSR1JaiAKCtbs4eY77uDZvzxPPtmBKN1a1R6olsC8YecAWMQsgCrts8c58vpu1KBvwcVccfUKGnMXAoZvt1n31Q18/ZXX+PXzzzN/7U3E9uTU+fBRGQiKnXOxejQG6qkw/O4x/rTtWUxSmnXhuute5c57N1HvnYtpRDslt99yA3/e+g/y1WtxQassQOpnYYBScWZgEWJAo8elCROTBTv3HidJa9RMOXhomMFrV7F63RpCkRNQLrl0Ef2xw4GxFs1agla0ogtBmekXg+KDoto9xgkejR5Q/OQko4MrOHv/I5y57WscyBx79h4F54jRE4MnSYReZ5TtnBCh6juVXSDa7eEkAmaYBiwG1FIkeFiyjHjdDdjn1jL67glqaQPEsOgxlOhLgvfEYISgaNSPNgdEDfVGzayra/RYDKCRpKeX7JXthL5+5O03WV+PbLj7VvLR092AEgraE2O0Wlm3mbxVRrzKLhAzojcaU12g6sEiedZh2adXsOUbkSxrM7B8BWvWraKRdijzghgjtdQ4eugQZ1sl5mr4MlaNgVkkMCWmEVVDNaK+RENJUKFec2y854s4lxBNyVojdPLuEBKLjJ86xXPP7aTVmIcmdTTvQFUbqveVADTxEA2HIbFAtEQQzGBiNOueMQJOBNGILzqcGT7O9h2v8a/dx8iv30j0ipRhahrOAMCKUBGbFHORWBTs27UD5z9Bp1N8KJLZVHDJ2hmnT7/HoWNn2PvqYd6ZM0Bn6UpotbqpumoSmg+Vg8iSiJnx92dfYPcbbxFLj0wHAMSoFIVnotXh7MgYw81FjNxyL2oOKcpZrjdCqoWfwLk+1M6fVmaYZeQDQ+w/9CLHRo9gzHyoqIF3NbLmRUwMrqN1zTq00YNkGTbTxw2TJBGN4WSqPuySWuMm86WCJOe96DPyhR/n8Prvkk6MVF15sLRGbM4lzl2ANucgZY5kGSpVqVjV9cx1WnZ2pLH0jyeWrLdyauiLyHmJ1wK+OZ9yzqJZLoAGpogPSDGOiUztPH44iZoZIqrOJ+ThtwIw/8Entsqc+ZssGz8XYd15wplVnufnFZfq4DFVRAGT3nmptseeHn/iwfuEzZsd+5anfRef/o2kjfvAIPhu/rugl9ME0noXii+emhgd+Q6f6l5O/+usi+5/7EuYbDLVNWI2cCEBGHJCnOzAeKq19aG/ncP1H0Aka5I9orOqAAAAAElFTkSuQmCC'>
+<script>
+/* iPhone haptics (scripts/audio/haptics.gd). Safari 18+ has no navigator.vibrate,
+   but toggling a hidden switch control plays the system haptic, only inside a user
+   gesture. The board acts on the finger's lift, which the game reads a frame after
+   touchend, so while a held finger aims at a move the game calls pgHaptic.arm(true)
+   and the lift's own touchend plays the tick. pgHaptic.tick() (the move itself) then
+   finds it played. A tap too quick to arm ticks from tick() at once, just after the
+   lift. Elsewhere it is unsupported and does nothing. */
+(function () {
+	var probe = document.createElement('input');
+	var supported = !('vibrate' in navigator) && ('switch' in probe);
+	var lastUp = -1e9;
+	var armed = false;
+	var armedFired = -1e9;
+	var api = window.pgHaptic = { supported: supported, pending: false, pendingAt: 0, fired: 0, tick: function () {
+		if (!api.supported) { return false; }
+		/* The lift that made this move already played its tick (arm). */
+		if (performance.now() - armedFired < 400) { armedFired = -1e9; return true; }
+		api.pending = true;
+		api.pendingAt = performance.now();
+		/* The finger already lifted (a very quick tap): try at once, still close to the gesture. */
+		if (api.pendingAt - lastUp < 400) { fire(); }
+		return true;
+	}, arm: function (on) {
+		if (!api.supported) { return false; }
+		armed = !!on;
+		return true;
+	} };
+	if (!supported) { return; }
+	var label = document.createElement('label');
+	var input = document.createElement('input');
+	input.type = 'checkbox';
+	input.setAttribute('switch', '');
+	input.tabIndex = -1;
+	label.setAttribute('aria-hidden', 'true');
+	label.style.cssText = 'position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none';
+	label.appendChild(input);
+	/* Clicking the switch moves focus to it and back, inside the finger's touchend.
+	   The game must never see that: a blur reads as the window losing focus, which
+	   cancels the tap being lifted (and releases held input), so a real iPhone
+	   could not place a pin. While the switch clicks, the focus events stop at the
+	   window, before they reach the canvas. */
+	var clicking = false;
+	['blur', 'focus', 'focusout', 'focusin'].forEach(function (type) {
+		window.addEventListener(type, function (event) {
+			if (clicking) { event.stopImmediatePropagation(); }
+		}, true);
+	});
+	function fire() {
+		if (!api.pending) { return; }
+		api.pending = false;
+		/* A tick left over from a tap that never ended is dropped, not played on a later tap. */
+		if (performance.now() - api.pendingAt > 800) { return; }
+		if (!label.isConnected) { document.body.appendChild(label); }
+		var active = document.activeElement;
+		clicking = true;
+		try {
+			label.click();
+			api.fired += 1;
+			if (active && active !== document.activeElement && active.focus) { active.focus({ preventScroll: true }); }
+		} finally {
+			clicking = false;
+		}
+	}
+	['touchend', 'pointerup', 'mouseup'].forEach(function (type) {
+		document.addEventListener(type, function () {
+			lastUp = performance.now();
+			if (armed) {
+				armed = false;
+				api.pending = true;
+				api.pendingAt = lastUp;
+				armedFired = lastUp;
+			}
+			fire();
+		}, { capture: true, passive: true });
+	});
+})();
+</script>
+<script>
+/* Shader link-ahead. Most of the boot used to be WebGL linking shader programs:
+   Godot links them one at a time and waits on each. Browsers link in parallel when
+   nobody waits (KHR_parallel_shader_compile: Chromium, Safari, Firefox), so the page
+   links the whole boot's programs itself, in Godot's own WebGL context, and when
+   Godot links a program with the same two sources it is handed the finished one
+   (its WebGLProgram stands for ours: every call that takes it is passed ours).
+   The sources come from a manifest recorded from a headless boot, one per quality
+   tier and water look (tools/web/link_manifest.py, assets/web/): fetched beside this
+   page as soon as it opens, so the links run while the engine downloads (the export
+   plugin, addons/basin_export, puts index.links_<tier>_<look>.json there). As it
+   starts, the game names the one it needs (scripts/web/link_ahead.gd), in case the
+   page guessed another. Programs the manifest lacks are linked
+   as Godot asks, and a land or object shader's other modes are guessed from its
+   first one (siblings). Nothing breaks when a manifest is stale: only time is lost.
+   window.__linkAhead counts for the tests; ?links=off turns it off.
+   This file is tools/web/link_ahead.js, embedded in the Web preset's head include by
+   tools/web/embed_head.py: edit it there (no double quotes). */
+(function () {
+	/* The engine looks for a few hundred files that are not there as it starts, and each
+	   miss throws an Error whose stack trace (through the whole engine) is dear: 0.45 s
+	   of a throttled phone's start. No traces until the game is up. */
+	var limit = Error.stackTraceLimit, quiet = /[?&]traces=on/.test(location.search) ? 0 : setInterval(function () {
+		if (window.__basin) { clearInterval(quiet); Error.stackTraceLimit = limit; }
+	}, 500);
+	if (quiet) { Error.stackTraceLimit = 0; }
+	var NL = String.fromCharCode(10);
+	var stats = window.__linkAhead = { ahead: 0, hits: 0, misses: 0, failed: 0, waited_ms: 0, off: true, manifest: '', early: false };
+	if (typeof WebGL2RenderingContext === 'undefined' || /[?&]links=off/.test(location.search)) { return; }
+	var P = WebGL2RenderingContext.prototype;
+	var COMPILE_STATUS = P.COMPILE_STATUS, LINK_STATUS = P.LINK_STATUS, ACTIVE_UNIFORMS = P.ACTIVE_UNIFORMS, VERTEX = P.VERTEX_SHADER;
+	var raw = {};
+	['createProgram', 'createShader', 'shaderSource', 'compileShader', 'attachShader', 'linkProgram', 'getProgramParameter', 'getShaderParameter',
+		'getExtension', 'deleteProgram', 'deleteShader', 'getActiveUniform', 'getActiveUniforms', 'transformFeedbackVaryings',
+		'bindAttribLocation', 'useProgram'].forEach(function (n) { raw[n] = P[n]; });
+	var gl = null, waiting = new Map(), linked = new Set(), queued = null, also = {};
+	stats.off = false;
+
+	function load(type, src) {
+		var sh = raw.createShader.call(gl, type);
+		raw.shaderSource.call(gl, sh, src);
+		raw.compileShader.call(gl, sh);
+		return sh;
+	}
+	/* Starts linking one program; `waiting` holds it until Godot asks for it. */
+	function ahead(vs, fs) {
+		var prog = raw.createProgram.call(gl), key = vs + fs;
+		[load(gl.VERTEX_SHADER, vs), load(gl.FRAGMENT_SHADER, fs)].forEach(function (sh) {
+			raw.attachShader.call(gl, prog, sh);
+			raw.deleteShader.call(gl, sh);
+		});
+		raw.linkProgram.call(gl, prog);
+		if (!waiting.has(key)) { waiting.set(key, []); }
+		waiting.get(key).push(prog);
+		stats.ahead += 1;
+	}
+
+	/* --- the manifest ------------------------------------------------------- */
+	/* Stages are stored once each: a string, or a line diff against an earlier one:
+	   [its index, then n keeps n lines, -n skips n, a string inserts lines]. */
+	function unpack(stages) {
+		var out = [], lines = [];
+		stages.forEach(function (s) {
+			if (typeof s === 'string') { out.push(s); return; }
+			var a = lines[s[0]] || (lines[s[0]] = out[s[0]].split(NL)), b = [], i = 0;
+			for (var n = 1; n < s.length; n++) {
+				var op = s[n];
+				if (typeof op === 'string') { b.push(op); } else if (op >= 0) { b.push(a.slice(i, i + op).join(NL)); i += op; } else { i -= op; }
+			}
+			out.push(b.join(NL));
+		});
+		return out;
+	}
+	function start(name, man) {
+		if (!gl || stats.manifest === name) { return; }
+		stats.manifest = name;
+		var s = unpack(man.stages);
+		man.progs.forEach(function (p) { ahead(s[p[0]], s[p[1]]); });
+	}
+	/* A program's fingerprint (the texts are too long to keep). */
+	function print(vs, fs) {
+		var h = 0;
+		for (var i = 0; i < vs.length; i += 31) { h = (Math.imul(h, 33) + vs.charCodeAt(i)) | 0; }
+		for (i = 0; i < fs.length; i += 31) { h = (Math.imul(h, 33) + fs.charCodeAt(i)) | 0; }
+		return vs.length + ':' + fs.length + ':' + h;
+	}
+	/* Another water look's programs, those this boot has not linked: called as Settings
+	   opens, so a switch finds them linked. */
+	stats.also = function (names) {
+		names.forEach(function (name) {
+			if (!gl || also[name] || stats.manifest === name) { return; }
+			also[name] = true;
+			get(name).then(function (man) {
+				if (!man) { return; }
+				var s = unpack(man.stages);
+				man.progs.forEach(function (p) {
+					if (!linked.has(print(s[p[0]], s[p[1]])) && !waiting.has(s[p[0]] + s[p[1]])) { ahead(s[p[0]], s[p[1]]); }
+				});
+			});
+		});
+	};
+	function get(name) {
+		return fetch('index.links_' + name + '.json').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+	}
+	/* The game's call (link_ahead.gd): the manifest this boot needs. Fetched here if the
+	   page guessed another, and remembered for the next visit. */
+	stats.want = function (name) {
+		try { localStorage.setItem('basin_links', name); } catch (e) { /* private mode */ }
+		if (gl && stats.manifest !== name) { get(name).then(function (man) { if (man) { start(name, man); } }); }
+	};
+
+	/* --- Godot's context ------------------------------------------------------ */
+	function adopt(ctx) {
+		if (!ctx || gl) { return; }
+		gl = ctx;
+		/* The extensions Emscripten turns on change how shaders are translated. */
+		(ctx.getSupportedExtensions() || []).forEach(function (n) {
+			if (n.indexOf('lose_context') < 0 && n.indexOf('debug') < 0) { raw.getExtension.call(ctx, n); }
+		});
+		if (queued) { start(queued[0], queued[1]); }
+	}
+	var getContext = HTMLCanvasElement.prototype.getContext;
+	HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+		var ctx = getContext.apply(this, arguments);
+		if (type === 'webgl2' && this.id === 'canvas') {
+			/* What Godot asked for, for the tests: the manifest's attributes must be the same. */
+			stats.attrs = attrs;
+			adopt(ctx);
+		}
+		return ctx;
+	};
+
+	/* The manifest beside the page: fetched now. Once the canvas is there its context
+	   is made with the attributes Godot will ask for (recorded in the manifest);
+	   Godot's own getContext then returns the same one. */
+	(function () {
+		var name = '', canvas = null, man = null;
+		try { name = localStorage.getItem('basin_links') || ''; } catch (e) { /* private mode */ }
+		var q = /[?&]water=(off|blob|goo)/.exec(location.search), ua = navigator.userAgent;
+		if (!/^(low|high)_(off|blob|goo)$/.test(name)) {
+			/* As GfxTier picks it, and the default water. */
+			name = (/Android|iPhone|iPad|iPod/.test(ua) || ('ontouchstart' in window && screen.width < 1200) ? 'low' : 'high') + '_goo';
+		}
+		if (q) { name = name.split('_')[0] + '_' + q[1]; }
+		function go() {
+			if (!man || !canvas) { return; }
+			if (gl) { start(name, man); return; }
+			stats.early = true;
+			queued = [name, man];
+			getContext.call(canvas, 'webgl2', Object.assign({}, man.attrs));
+			adopt(getContext.call(canvas, 'webgl2'));
+		}
+		document.addEventListener('DOMContentLoaded', function () { canvas = document.getElementById('canvas'); go(); });
+		if (location.protocol === 'file:') { return; }
+		get(name).then(function (m) { man = m; go(); });
+	})();
+
+	/* --- programs Godot links ------------------------------------------------- */
+	/* Every call that takes a program gets ours where Godot's stands for it. */
+	['getActiveAttrib', 'getActiveUniformBlockName', 'getActiveUniformBlockParameter', 'getActiveUniforms', 'getAttachedShaders',
+		'getAttribLocation', 'getFragDataLocation', 'getProgramInfoLog', 'getTransformFeedbackVarying', 'getUniform', 'getUniformBlockIndex',
+		'getUniformIndices', 'getUniformLocation', 'isProgram', 'uniformBlockBinding', 'validateProgram'].forEach(function (n) {
+		var f = P[n];
+		P[n] = function (p) {
+			if (p && p.__ours !== undefined) { arguments[0] = p.__ours; }
+			return f.apply(this, arguments);
+		};
+	});
+	P.useProgram = function (p) { return raw.useProgram.call(this, p !== null && p.__ours !== undefined ? p.__ours : p); };
+	/* Giving the browser a source and compiling it wait until a link needs them: most
+	   sources are in the manifest. */
+	P.shaderSource = function (sh, src) {
+		if (this !== gl) { return raw.shaderSource.call(this, sh, src); }
+		sh.__src = src;
+		return undefined;
+	};
+	P.compileShader = function (sh) {
+		if (this !== gl) { return raw.compileShader.call(this, sh); }
+		sh.__lazy = true;
+		return undefined;
+	};
+	function compileNow(sh) {
+		if (!sh.__lazy) { return; }
+		sh.__lazy = false;
+		raw.shaderSource.call(gl, sh, sh.__src);
+		raw.compileShader.call(gl, sh);
+	}
+	P.getShaderParameter = function (sh, what) {
+		if (sh && sh.__lazy && what === COMPILE_STATUS) { return true; }
+		return raw.getShaderParameter.call(this, sh, what);
+	};
+	P.createShader = function (type) {
+		var sh = raw.createShader.call(this, type);
+		if (sh) { sh.__type = type; }
+		return sh;
+	};
+	P.attachShader = function (prog, sh) {
+		if (prog && sh) { (prog.__sh = prog.__sh || []).push(sh); }
+		return raw.attachShader.call(this, prog, sh);
+	};
+	['transformFeedbackVaryings', 'bindAttribLocation'].forEach(function (n) {
+		P[n] = function (prog) { prog.__own = true; return raw[n].apply(this, arguments); };
+	});
+	P.deleteProgram = function (prog) {
+		if (prog && prog.__ours !== undefined) { raw.deleteProgram.call(this, prog.__ours); }
+		return raw.deleteProgram.call(this, prog);
+	};
+	P.linkProgram = function (prog) {
+		if (this !== gl) { return raw.linkProgram.call(this, prog); }
+		var vs = null, fs = null, list = prog.__sh || [];
+		list.forEach(function (sh) { if (sh.__type === VERTEX) { vs = sh.__src; } else { fs = sh.__src; } });
+		if (vs && fs && !prog.__own && prog.__ours === undefined) {
+			var key = vs + fs, hit = waiting.get(key);
+			linked.add(print(vs, fs));
+			if (hit) {
+				var ours = hit.shift();
+				if (!hit.length) { waiting.delete(key); }
+				var t = performance.now();
+				var ok = raw.getProgramParameter.call(gl, ours, LINK_STATUS);
+				stats.waited_ms += performance.now() - t;
+				if (ok) {
+					prog.__ours = ours;
+					stats.hits += 1;
+					/* 12 MB of text, over the boot. */
+					list.forEach(function (sh) { sh.__src = undefined; });
+					return undefined;
+				}
+				stats.failed += 1;
+				raw.deleteProgram.call(gl, ours);
+			} else {
+				stats.misses += 1;
+				siblings(vs, fs);
+			}
+		}
+		list.forEach(function (sh) { compileNow(sh); sh.__src = undefined; });
+		return raw.linkProgram.call(this, prog);
+	};
+	/* Emscripten lists a program's every active uniform once, one call each, to find
+	   the loose ones; about nine in ten sit in uniform blocks and have no location:
+	   list only the loose ones (one call says which). */
+	function loose(prog) {
+		if (prog.__loose === undefined) {
+			var n = raw.getProgramParameter.call(gl, prog, ACTIVE_UNIFORMS), all = [];
+			for (var i = 0; i < n; i++) { all.push(i); }
+			var blocks = n ? raw.getActiveUniforms.call(gl, prog, all, gl.UNIFORM_BLOCK_INDEX) : [];
+			prog.__loose = blocks ? all.filter(function (k) { return blocks[k] === -1; }) : all;
+		}
+		return prog.__loose;
+	}
+	P.getProgramParameter = function (prog, what) {
+		var p = prog && prog.__ours !== undefined ? prog.__ours : prog;
+		if (p && this === gl && what === ACTIVE_UNIFORMS) { return loose(p).length; }
+		return raw.getProgramParameter.call(this, p, what);
+	};
+	P.getActiveUniform = function (prog, i) {
+		var p = prog && prog.__ours !== undefined ? prog.__ours : prog;
+		return raw.getActiveUniform.call(this, p, p && this === gl ? loose(p)[i] : i);
+	};
+	/* Every frame Emscripten asks whether the scissor test is on with getParameter,
+	   which Chromium answers with a round trip to its GPU process (it waits for the
+	   whole frame's calls to be taken up); isEnabled answers the same at once. */
+	var getParameter = P.getParameter;
+	P.getParameter = function (what) {
+		return what === 0xC11 && this === gl ? this.isEnabled(0xC11) : getParameter.call(this, what);
+	};
+	/* Links nobody asked for (a stale manifest) are let go once the game has run a while. */
+	var swept = setInterval(function () {
+		if (!gl || !window.__basin || !window.__basin.warm_all) { return; }
+		clearInterval(swept);
+		setTimeout(function () {
+			if (Object.keys(also).length) { return; }
+			stats.unused = waiting.size;
+			waiting.forEach(function (list) { list.forEach(function (p) { raw.deleteProgram.call(gl, p); }); });
+			waiting.clear();
+		}, 10000);
+	}, 2000);
+
+	/* --- a scene shader's other modes ------------------------------------------ */
+	/* For a material the manifest does not know: the modes Godot links right after
+	   its first program are the same text with one define line changed. */
+	var MARK = '#define MAX_ROUGHNESS_LOD';
+	var MODES = [NL, NL + '#define USE_INSTANCING' + NL, '#define MODE_RENDER_DEPTH' + NL, '#define MODE_RENDER_DEPTH ' + NL + '#define USE_INSTANCING' + NL];
+	var BASE = ['DISABLE_REFLECTION_PROBE', 'USE_RADIANCE_MAP', 'BASE_PASS', 'APPLY_TONEMAPPING'].map(function (n) { return '#define ' + n + NL; }).join('');
+	function split(src) {
+		var i = src.indexOf(MARK);
+		if (src.indexOf('#version') !== 0 || i < 0) { return null; }
+		var j = src.indexOf(NL, i) + 1, a = src.indexOf(NL) + 1;
+		if (src.substr(a, 23) === '#define USE_HALF2FLOAT' + NL) { a += 23; }
+		if (src.substr(a, BASE.length) !== BASE || src.charAt(j) !== NL || src.substr(j, MODES[1].length) === MODES[1]) { return null; }
+		return [src.slice(0, j), src.slice(j + 1)];
+	}
+	function siblings(vs, fs) {
+		var v = split(vs), f = split(fs);
+		if (!v || !f) { return; }
+		for (var m = 1; m < 4; m++) {
+			var a = v[0] + MODES[m] + v[1], b = f[0] + MODES[m] + f[1];
+			if (!waiting.has(a + b)) { ahead(a, b); }
+		}
+	}
+})();
+</script>
+<script>
+/* Texture family. The GPU-compressed textures ship twice, for GPUs that read s3tc
+   (desktops) and for the rest (etc2: phones), each in a pack beside the main one
+   (addons/basin_export). This downloads the one Godot will ask for on this GPU (it
+   takes s3tc wherever the extension is there) while the engine downloads;
+   scripts/web/link_ahead.gd loads it before anything needs a texture.
+   An export without the packs (404) keeps them in the main pack.
+   This file is tools/web/pick_textures.js, embedded by tools/web/embed_head.py. */
+(function () {
+	if (location.protocol === 'file:') { return; }
+	var family = 'etc2';
+	try {
+		var probe = document.createElement('canvas').getContext('webgl2');
+		if ((probe.getSupportedExtensions() || []).indexOf('WEBGL_compressed_texture_s3tc') >= 0) { family = 's3tc'; }
+		var lose = probe.getExtension('WEBGL_lose_context');
+		if (lose) { lose.loseContext(); }
+	} catch (e) { /* the page itself says when WebGL is missing */ }
+	/* tools/web/climate_pack.js fetches the same family later. */
+	window.__basinTextureFamily = family;
+	function load(tries) {
+		return fetch('index.tex_' + family + '.pck').then(function (r) {
+			if (r.status === 404) { return null; }
+			if (!r.ok) { throw new Error('Failed loading the textures'); }
+			return r.arrayBuffer();
+		}).catch(function (e) {
+			if (tries <= 1) { throw e; }
+			return new Promise(function (go) { setTimeout(go, 1000); }).then(function () { return load(tries - 1); });
+		});
+	}
+	var textures = load(4).then(function (pack) { window.__basinTextures = pack ? new Uint8Array(pack) : null; });
+	textures.catch(function () { /* the pack's fetch, below, passes it on */ });
+	/* The engine starts once it has its main pack: give it that when the textures are in too. */
+	var get = window.fetch;
+	window.fetch = function (what) {
+		var got = get.apply(this, arguments);
+		if (!/(^|\/)index\.pck$/.test(String(what))) { return got; }
+		window.fetch = get;
+		return textures.then(function () { return got; });
+	};
+})();
+</script>
+<script>
+/* Climate maps. The ground maps of every climate but the meadow (assets/textures/climates)
+   ship in a pack of their own per texture family, index.clim_<family>.pck
+   (addons/basin_export), so a first visit does not wait for them. The game asks for
+   it on its first frame (scripts/view/climate.gd, Climate.poll); until it is in, those
+   islands draw with the meadow maps tinted their way. state: idle, loading, ready
+   (data holds the pack), none (an export without the pack: the maps are in the main
+   one) or failed (offline: the game asks again at the next island). askedAtFrame is
+   the frame the game had drawn when it first asked.
+   This file is tools/web/climate_pack.js, embedded by tools/web/embed_head.py. */
+(function () {
+	var api = window.__basinClimates = { state: 'idle', data: null, askedAtFrame: -1, start: function (frame) {
+		if (api.state !== 'idle' && api.state !== 'failed') { return; }
+		if (api.askedAtFrame < 0) { api.askedAtFrame = frame; }
+		if (location.protocol === 'file:') { api.state = 'none'; return; }
+		api.state = 'loading';
+		load(3);
+	} };
+	function load(tries) {
+		fetch('index.clim_' + (window.__basinTextureFamily || 'etc2') + '.pck').then(function (r) {
+			if (r.status === 404) { return null; }
+			if (!r.ok) { throw new Error('Failed loading the climate maps'); }
+			return r.arrayBuffer();
+		}).then(function (pack) {
+			api.data = pack ? new Uint8Array(pack) : null;
+			api.state = pack ? 'ready' : 'none';
+		}).catch(function () {
+			if (tries <= 1) { api.state = 'failed'; return; }
+			setTimeout(function () { load(tries - 1); }, 3000);
+		});
+	}
+})();
+</script>
+<script>
+/* Keeps the page's sound under full volume: everything Godot sends to the speakers goes
+   through one gentle limiter (the engine's small template has none). Also counts contexts
+   left suspended and resumes them on the next press (iPhones suspend after a call).
+   This file is tools/web/limiter.js, embedded by tools/web/embed_head.py. */
+(function () {
+	if (typeof AudioNode === 'undefined') { return; }
+	var connect = AudioNode.prototype.connect, seen = [];
+	AudioNode.prototype.connect = function (to) {
+		if (to instanceof AudioDestinationNode && !this.__basinOut) {
+			var c = this.context;
+			if (!c.__basinLimit) {
+				var l = c.createDynamicsCompressor(), g = c.createGain();
+				l.threshold.value = -7; l.knee.value = 5; l.ratio.value = 14; l.attack.value = 0.003; l.release.value = 0.2;
+				/* The node adds make-up of its own, (1 / its gain at full scale)^0.6: take it back. */
+				g.gain.value = 0.66;
+				g.__basinOut = true;
+				connect.call(l, g); connect.call(g, to);
+				c.__basinLimit = l; seen.push(c);
+				/* The recorded music plays in the same context (tools/web/music_deck.js). */
+				window.__basinAudio = c;
+			}
+			return connect.call(this, c.__basinLimit);
+		}
+		return connect.apply(this, arguments);
+	};
+	/* Out of sight it is silent (a phone's browser would play on), and it comes back with the page. */
+	function rest() { seen.forEach(function (c) { if (c.state === 'running') { c.suspend().catch(function () {}); } }); }
+	function wake() { seen.forEach(function (c) { if (c.state === 'suspended' || c.state === 'interrupted') { c.resume().catch(function () {}); } }); }
+	['pointerdown', 'touchend', 'keydown'].forEach(function (e) { window.addEventListener(e, wake, true); });
+	document.addEventListener('visibilitychange', function () { if (document.hidden) { rest(); } else { wake(); } });
+})();
+</script>
+<script>
+/* Sounds. The recorded sounds and instruments (assets/sound) ship in a pack of their own,
+   index.snd.pck (addons/basin_export), so a first visit does not wait for them. The game
+   asks for it after its first frames (scripts/audio/sfx.gd); until it is in, short
+   synthesised sounds stand in. state: idle, loading, ready (data holds the pack), none
+   (an export without the pack) or failed (offline: the stand-ins stay).
+   This file is tools/web/sound_pack.js, embedded by tools/web/embed_head.py. */
+(function () {
+	var api = window.__basinSound = { state: 'idle', data: null, start: function () {
+		if (api.state !== 'idle') { return; }
+		if (location.protocol === 'file:') { api.state = 'none'; return; }
+		api.state = 'loading';
+		load(3);
+	} };
+	function load(tries) {
+		fetch('index.snd.pck').then(function (r) {
+			if (r.status === 404) { return null; }
+			if (!r.ok) { throw new Error('Failed loading the sounds'); }
+			return r.arrayBuffer();
+		}).then(function (pack) {
+			api.data = pack ? new Uint8Array(pack) : null;
+			api.state = pack ? 'ready' : 'none';
+		}).catch(function () {
+			if (tries <= 1) { api.state = 'failed'; return; }
+			setTimeout(function () { load(tries - 1); }, 3000);
+		});
+	}
+})();
+</script>
+<script>
+/* Music. The recorded sections (assets/music, docs/sound.md) are files of their own beside
+   the game, index.mus_<id>.ogg, none of them in the first load: scripts/audio/music_deck.gd
+   asks for each a section before it is wanted. Each is decoded off the main thread and
+   played on the page's audio clock, through the same context and limiter as the engine's
+   sounds (tools/web/limiter.js), so a hidden tab silences it too. Until a section is in,
+   and wherever one cannot be decoded, the engine's own score plays on.
+   This file is tools/web/music_deck.js, embedded by tools/web/embed_head.py. */
+(function () {
+	var bufs = {}, states = {}, raw = {}, voices = [], master = null, level = 1;
+	function ctx() { return window.__basinAudio || null; }
+	function out() {
+		var c = ctx();
+		if (!c) { return null; }
+		if (!master || master.context !== c) { master = c.createGain(); master.gain.value = level; master.connect(c.destination); }
+		return master;
+	}
+	/* Equal power, as music_deck.gd: sin rising, cos falling. */
+	function curve(up, g) {
+		var n = 64, a = new Float32Array(n);
+		for (var i = 0; i < n; i++) { var t = i / (n - 1); a[i] = g * (up ? Math.sin(Math.PI * 0.5 * t) : Math.cos(Math.PI * 0.5 * t)); }
+		a[0] = up ? 0.0001 : g; a[n - 1] = up ? g : 0.0001;
+		return a;
+	}
+	function decode(id) {
+		var c = ctx();
+		if (!c) { states[id] = 'loading'; setTimeout(function () { decode(id); }, 500); return; }
+		/* A copy: decoding takes its buffer away, and the bytes are kept to decode again later. */
+		var bytes = raw[id].slice(0);
+		var done = function (b) { bufs[id] = b; states[id] = 'ready'; };
+		var fail = function () { states[id] = 'failed'; };
+		try {
+			var p = c.decodeAudioData(bytes, done, fail);
+			if (p && p.catch) { p.catch(fail); }
+		} catch (e) { fail(); }
+	}
+	var api = window.__basinMusic = {
+		now: function () { var c = ctx(); return c ? c.currentTime : 0; },
+		state: function (id) { return states[id] || 'none'; },
+		load: function (id) {
+			if (states[id] === 'ready' || states[id] === 'loading') { return; }
+			states[id] = 'loading';
+			if (raw[id]) { decode(id); return; }
+			var tries = 3;
+			(function get() {
+				fetch('index.mus_' + id + '.ogg').then(function (r) {
+					if (!r.ok) { throw new Error('music ' + r.status); }
+					return r.arrayBuffer();
+				}).then(function (b) { raw[id] = b; decode(id); }).catch(function () {
+					if (--tries > 0) { setTimeout(get, 3000); } else { states[id] = 'failed'; }
+				});
+			})();
+		},
+		/* Voice v plays id from `from` s into it at `at` (the context's clock), fading in over [a, b]. */
+		play: function (v, id, from, at, a, b) {
+			var o = out(), c = ctx(), buf = bufs[id];
+			if (!o || !buf) { return; }
+			api.stop(v);
+			var src = c.createBufferSource(), gin = c.createGain(), gout = c.createGain();
+			src.buffer = buf;
+			src.connect(gin); gin.connect(gout); gout.connect(o);
+			if (b > a) {
+				gin.gain.setValueAtTime(0.0001, Math.max(c.currentTime, 0));
+				gin.gain.setValueCurveAtTime(curve(true, 1), Math.max(a, c.currentTime), Math.max(b - Math.max(a, c.currentTime), 0.01));
+			}
+			src.start(Math.max(at, c.currentTime), Math.max(from + Math.max(c.currentTime - at, 0), 0));
+			voices[v] = { src: src, gout: gout, id: id };
+		},
+		fade: function (v, a, b) {
+			var e = voices[v], c = ctx();
+			if (!e || !c) { return; }
+			var t = Math.max(a, c.currentTime);
+			try {
+				e.gout.gain.cancelScheduledValues(t);
+				e.gout.gain.setValueCurveAtTime(curve(false, 1), t, Math.max(b - t, 0.01));
+				e.src.stop(Math.max(b, t) + 0.05);
+			} catch (x) {}
+		},
+		stop: function (v) {
+			var e = voices[v];
+			if (e) { try { e.src.stop(); } catch (x) {} voices[v] = null; }
+		},
+		level: function (x) {
+			level = x;
+			var o = out(), c = ctx();
+			if (o) { o.gain.setTargetAtTime(Math.max(x, 0), c.currentTime, 0.15); }
+		},
+		/* The music's own output, before the limiter (tools/web/music_record.py measures it). */
+		node: function () { return out(); },
+		/* A section's decoded copy is 10 to 15 MB: it goes once it is played, and its bytes stay. */
+		free: function (id) {
+			for (var v = 0; v < voices.length; v++) { if (voices[v] && voices[v].id === id) { return; } }
+			delete bufs[id];
+			if (states[id] === 'ready') { states[id] = 'none'; }
+		}
+	};
+})();
+</script>
+	</head>
+	<body>
+		<canvas id="canvas">
+			This browser cannot show the game.
+		</canvas>
+
+		<noscript>
+			Basin needs JavaScript. Turn it on for this page, then reload.
+		</noscript>
+
+		<div id="status">
+			<img id="status-splash" class="show-image--true fullsize--false use-filter--true" src="index.png" alt="">
+			<progress id="status-progress"></progress>
+		</div>
+
+		<script>window.__basinPage.guard(document.getElementById('canvas'));</script>
+		<script src="index.js?b=6b07e097105b" onerror="window.__basinPage.failed([])"></script>
+		<script>
+(function () {
+	if (typeof Engine === 'undefined') { return; }
+	const page = window.__basinPage;
+	const overlay = document.getElementById('status');
+	const bar = document.getElementById('status-progress');
+	const missing = Engine.getMissingFeatures({ threads: false });
+	if (missing.length !== 0) {
+		page.failed(missing);
+		return;
+	}
+	overlay.style.visibility = 'visible';
+	bar.style.display = 'block';
+	page.starting();
+	new Engine({"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":2641500,"index.wasm":18211997},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4}).startGame({
+		onProgress: function (now, of) {
+			page.progress(now, of);
+			if (now > 0 && of > 0) {
+				bar.value = now;
+				bar.max = of;
+			} else {
+				bar.removeAttribute('value');
+				bar.removeAttribute('max');
+			}
+		},
+	}).then(function () {
+		overlay.remove();
+		page.started();
+	}, function (err) {
+		console.error(err);
+		bar.style.display = 'none';
+		page.failed([]);
+	});
+}());
+		</script>
+	</body>
+</html>
+
