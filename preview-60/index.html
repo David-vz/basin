@@ -8,6 +8,19 @@
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 		<meta name="apple-mobile-web-app-title" content="Basin">
+		<!-- What a shared link shows: the build's own icon, beside the page (no other host). -->
+		<meta property="og:type" content="website">
+		<meta property="og:title" content="Basin">
+		<meta property="og:description" content="Shape islands that hold the rain.">
+		<meta property="og:image" content="index.icon512.png">
+		<meta property="og:image:width" content="512">
+		<meta property="og:image:height" content="512">
+		<meta property="og:image:alt" content="Basin's icon">
+		<meta name="twitter:card" content="summary">
+		<meta name="twitter:title" content="Basin">
+		<meta name="twitter:description" content="Shape islands that hold the rain.">
+		<meta name="twitter:image" content="index.icon512.png">
+		<meta name="twitter:image:alt" content="Basin's icon">
 		<link rel="manifest" href="index.webmanifest">
 		<!-- The page Basin runs in (docs/web-build.md): Godot's own shell, plus what keeps it
 			 playable when the network, the storage or the graphics fail. The dollar words are
@@ -178,7 +191,7 @@ body {
 /* The page's part of the game: which build this is, what it keeps, how it starts again.
    The game talks to it through scripts/web/page.gd. Nothing here may throw. */
 (function () {
-	var BUILD = '6b09e739c3db', SRI = {"index.clim_etc2.pck":"sha256-0VVPR8RUToHvt/Jw+7PZkl/T3lbhPEYpIvr+ediF2LI=","index.clim_s3tc.pck":"sha256-11oT9z0hVGS/Rp0XGMpsHtToHsfOzyLI/JNgA7+Ih6U=","index.links_high_blob.json":"sha256-s8x/Wck6TpzUlMrDFD1svNHrhqk8Rof9ujZ9mFKMfTI=","index.links_high_goo.json":"sha256-PFb2JLSduZuvTkmEvKND3X/eTbvYqmbMVOsruzHLTHM=","index.links_high_off.json":"sha256-teLy2Y8r/93ktx/1qJz44vtaQAy4gtIl3HTUqr5N6Bg=","index.links_low_blob.json":"sha256-14PQsdrUVzucN9fkcSL/Q/ZBKINS1Tdd79H2PIK9nFk=","index.links_low_goo.json":"sha256-FF3tuRjkH7z2xD74h1NdongcR1AgHud28XUY/XFYK/E=","index.links_low_off.json":"sha256-ycIXOUxL1Q11TmDg0UqUuQ4aoZhqeorzYFLJSV9bXNY=","index.mus_autumn_01.ogg":"sha256-Fdsn4ItLBRYhPjujbFl+rzTsjk6qaSOtrLIb7nC/pn8=","index.mus_autumn_02.ogg":"sha256-7/q+4oAIEh+fkJwcRvQJjZIpiGX7EJex/Br7o/+mwwE=","index.mus_autumn_03.ogg":"sha256-G9bt8j6C8FpXGd/g7HfrYaJazg/KI/J/nXBNSydjQOs=","index.mus_autumn_04.ogg":"sha256-l3fqCcfzgXM5MI0IXHRJUhliAk0IUgcq+Mu/l8EKC2I=","index.mus_autumn_05.ogg":"sha256-1PzZDtPOta5r+v9xTYpUd3rZVUf1ANvp/HcPhWnEbZI=","index.mus_autumn_06.ogg":"sha256-iBl3PRc4wDN9IhEIh42dhmTP6jhoTfHVDqrE6PG3f4k=","index.mus_autumn_07.ogg":"sha256-Yy3aBnS957ejiqtAzCTpv6v1xJYxVaeAKnmKF+C6h80=","index.mus_autumn_08.ogg":"sha256-dNd/lVlZXKm/g8rWbfzD1nZ9J0TKJtsS2e9FNITdsJk=","index.mus_autumn_09.ogg":"sha256-bah4ueNLgmTUCNgVhfn28oPU+4717YBd09FH1EFwg6c=","index.mus_autumn_10.ogg":"sha256-3Zf2L/JajbM6JL4BJDKu/joA5qb0pAnsAyuB+lHiTcQ=","index.mus_autumn_11.ogg":"sha256-PMtw07xCJbIpFGqoqghehg+pwVLMBhq3rkqE4pCv7g4=","index.mus_autumn_12.ogg":"sha256-M/8PFHsVpeYC1Bj2zwoKCoU2nGpu/dsK2DqWGPKUSP0=","index.mus_autumn_13.ogg":"sha256-aNz8Fhgy+Nd7UHe4Ma/1HyrQRgB++xsvm/5QbqbV96E=","index.mus_autumn_14.ogg":"sha256-nEs6EV2AL92C4VvN//+kJFl8XIxJr9hR/r8HWdmBrOQ=","index.mus_dusk_01.ogg":"sha256-I+xi3bJNHlZaxkjHiXDkQCaL49cwlMv/kr6BIWNbC/o=","index.mus_dusk_02.ogg":"sha256-0QAO6dXYvpXEau7jWMtNstRHEypC+/brwnv3YYCpiGo=","index.mus_dusk_03.ogg":"sha256-fIBxsaxRQ7ZUTiWukTYqa/HQv82dj9kBJf/sBQE8AsI=","index.mus_dusk_04.ogg":"sha256-t9uDHmnvBGhHxgTqEAm9nZD2nkuSUuXzuOTrTAkfvlY=","index.mus_dusk_05.ogg":"sha256-LsshrMMvwma1vV5XJwpMwhm6PbGM0aQwexIPk837lPk=","index.mus_dusk_06.ogg":"sha256-1dALiT5HuY4iFAKstJiV+J2iGRVsiTLh66srlzh2RSY=","index.mus_dusk_07.ogg":"sha256-lH6V9rezDZF6APKqSwyQdgc+1e6sFMCzdk4hJLnGb2Y=","index.mus_dusk_08.ogg":"sha256-DoThNS/3m+lgva4D1pwNSAsw+Ls0fbBdzgvNYHc0ykc=","index.mus_dusk_09.ogg":"sha256-O44KkWKLsUdoGEicYOoLi6h5MHqQ8UHSabv8kt93cqQ=","index.mus_dusk_10.ogg":"sha256-UcojrtDV9rzXa8qeb4kzaXToTerIZxl44znxiWQK1ic=","index.mus_dusk_11.ogg":"sha256-J1RtyOUIZLaO9y1O761O/GNCVb/WakPH7c0CJhZKMBQ=","index.mus_dusk_12.ogg":"sha256-qZ1kx3jyW8A2oEMOAHzlI740rnD3EJW+bT442QiCPBY=","index.mus_frost_01.ogg":"sha256-ILwSN2WsC6egNAkc8mtdzzcADO9b9niZVQiuvPYqOI8=","index.mus_frost_02.ogg":"sha256-q7B8dT0jCX6xwSWVt85Nc/gadDy+s5q1pjp2JW8kT5c=","index.mus_frost_03.ogg":"sha256-5Gtp3UCXJLUKaPOVgD16p1zQVh1m0rl7Lvt48IclJE8=","index.mus_frost_04.ogg":"sha256-PU+On1jQGXainIGdDEALlWFP9JZd7A/v6ZdrtowJNHg=","index.mus_frost_05.ogg":"sha256-Kcv8+zrE0JvPqUUlBR2y1scjXt3WfItDZAlI+Ez4+ws=","index.mus_frost_06.ogg":"sha256-2mvrtvBhlV06rt0j539vc1TGCYJpuOaZowaCFJnyjxc=","index.mus_frost_07.ogg":"sha256-oqHHqSFK+wNPzf6BBt/MSGubFZcZAowZZZrX9QJMMUI=","index.mus_frost_08.ogg":"sha256-GFqg6Rz/oKkJVJihbGgZ+G9QXA02g+lBGUuRQ6zI2hY=","index.mus_frost_09.ogg":"sha256-n8MNtR9EIPgpirRRLtK2k6d7kkkgKmfZz5tqu4bfjQg=","index.mus_frost_10.ogg":"sha256-wmvNVlfDKqGYr4q6hWZK+F5fj1lTa4MQhGb5zJZtYKs=","index.mus_frost_11.ogg":"sha256-5Yw3exC1KtYMlGbZ/y7/t44cEPCzYpCngM/L19LY6DA=","index.mus_frost_12.ogg":"sha256-tYhHHquoM3/LBmhmmCRDauz/Q23vwgb8YF+y0u/mHhQ=","index.mus_frost_13.ogg":"sha256-TiIayjFm2nH0lirwbRfJDIGiavYobdo0rrAYZksa0UY=","index.mus_golden_01.ogg":"sha256-4J7r+Re5jUMx9pIuQcIX/FWKETxdB4gQ+CmN2Yzeb2Q=","index.mus_golden_02.ogg":"sha256-fnOUvnG2bikq1n9DUNMitbrk4akiAh1eoLeV2S/hDdg=","index.mus_golden_03.ogg":"sha256-5G4HFQ+8P52V9WaQeLhK+tSheahNcz07CdYGra37Z1o=","index.mus_golden_04.ogg":"sha256-B/3moJo+tFvvEWEEdNhUrDCnCb8ePK7uu/0aCgb0JSg=","index.mus_golden_05.ogg":"sha256-Wk5eiuBmrWSoQmGclWSaM/hyVg4/x7U3Dk2uJbLUzXQ=","index.mus_golden_06.ogg":"sha256-kuXT7xUauZOtHy8T7BHPqak3bRp1UD/OyeRvU1xul1s=","index.mus_golden_07.ogg":"sha256-LVBs6z2HE4La0UtHwY2tOxw+BLDz2FU0U16h99tigM8=","index.mus_golden_08.ogg":"sha256-puZ+NHCQA51Cg11FvtTNhLy0c05FNYUDopaGj9h/q7c=","index.mus_golden_09.ogg":"sha256-Zm2hfPqZ88nYgO+yyScujAK5VMuf/VXcdNzuoq9hGOQ=","index.mus_golden_10.ogg":"sha256-UEEyUOBRrJKHfGpKBCMPEVus+aWLBdTaTrSyB8DKu/c=","index.mus_golden_11.ogg":"sha256-i/Si2mh9xF5cuIrJo262T1JUAkh6HY0bd/cXqsp/vKo=","index.mus_golden_12.ogg":"sha256-PKWWL8EmzZUq0idpurTFKrRt0QDrjfHr9V6CGCGUTto=","index.mus_golden_13.ogg":"sha256-/vSl+ej2XluuFFuvHHFiO5lqvXDl166FJsEy32uxaF4=","index.mus_golden_14.ogg":"sha256-FcuX3wpdR7jVilbs5T10BGWCWKcxnJXH/iMQ9wrA2y8=","index.mus_golden_15.ogg":"sha256-grwPapo3TTC4ELIpJbpdAgm/PwpndJwtV6noT6EB6gU=","index.mus_golden_16.ogg":"sha256-TCLxehDpumxjZIXsSD8ox+lvcNl/Vg3mZ3pXlhOH+kQ=","index.mus_meadow_01.ogg":"sha256-OwcBwJsfjhlQkUbJH10xtsiXAw8i+U6Uhx5MeORphfY=","index.mus_meadow_02.ogg":"sha256-Br3y53F+kCl/hxBc0e925MPOA2a3dRWLVrCvSbVWd/U=","index.mus_meadow_03.ogg":"sha256-5EXhXVXqgmGstVOFQf9Lb21I8gtn93fc6Olge4rd47E=","index.mus_meadow_04.ogg":"sha256-JrCof3zimLygmWdpGHu0ZML+b2qHcP3bhjnFynedxEA=","index.mus_meadow_05.ogg":"sha256-wtu1TVFC9qb5DiQ9DW6vDJe2e3UuD9JX+h9Qa7nqE5k=","index.mus_meadow_06.ogg":"sha256-sRumS5RGffslEHpmTo7fjt31SmkHY6uog0hvrGxW4PE=","index.mus_meadow_07.ogg":"sha256-QVs71bcFl5E2obutHqDXiDfwwfdwCofjerOrbU4pFjg=","index.mus_meadow_08.ogg":"sha256-06f4l97+ojXX7Exy4H9bRmqwm9yBSJmpa/F3sgcmHoc=","index.mus_meadow_09.ogg":"sha256-yYda1ri5rkOoXE1BvpthRAhJ7i1uMAWMuUQuXMY+DEM=","index.mus_meadow_10.ogg":"sha256-FAg6kXHEtj97UjmoFP/H30qE14iXo1QYmDMItfAZSOg=","index.mus_meadow_11.ogg":"sha256-xJdfYMlR4F0aHqsOXSgI/eCDveoL+9EMrHgOw0T+ePI=","index.mus_meadow_12.ogg":"sha256-LCvi/gvsKsoLss6ud8kitE50uRMX2h/hsBiyKOzovug=","index.mus_meadow_13.ogg":"sha256-lkdYnFSMRb8Mt9jp8G6/EvenMvqLWTs1bPPLEHq4kq4=","index.mus_meadow_14.ogg":"sha256-aHzJ2mOYqTDiWs2brFj0HChw6cQOd08ppBC+ci3ru4s=","index.mus_meadow_15.ogg":"sha256-jStEPdWr6Rs9n3d+w/5i3y39266XPc/fkMnWNE9yADo=","index.mus_meadow_16.ogg":"sha256-hRCtoGNuj9tlCaN8TDXiJn8BoNIXwHgJeniCuwDQnKk=","index.mus_meadow_17.ogg":"sha256-OHvcRlnYdip/jeOhQmPuaQynA7KBR+w4sLtb41rX+YA=","index.mus_meadow_18.ogg":"sha256-pZTudo7bKM7N3Y4HCsXaUPt/e8MLVMfArUyux8NvMVw=","index.mus_meadow_19.ogg":"sha256-2l+zOowK3/3kMoRLmDY/XTSHZabyhhqIZ2iwUarq+IU=","index.mus_oasis_01.ogg":"sha256-yUczDoGWN2d9m8IDE4RdFAjvP5Vq7B1MAJjk/hH1eYM=","index.mus_oasis_02.ogg":"sha256-NcT2AjcqrKzU10zK0O6MGV1/0v2MCvWN0uo2Cfn3GP4=","index.mus_oasis_03.ogg":"sha256-p4eTQTYsPoab/z2JMmNwOByN1ApVA2XnDxCY9PJM/8k=","index.mus_oasis_04.ogg":"sha256-0YSf10yg5nxj+EpQX1Ta6N9jAY5x/80H5/BKfSfupkI=","index.mus_oasis_05.ogg":"sha256-Y3zPjTMoKsoi04Y4Y0lV1vIvDYN8PgP5pa36TiIDtGw=","index.mus_oasis_06.ogg":"sha256-WlW7h5vE++NPOl6saNQt5mMDWzGaADdybs+pkrTiuN8=","index.mus_oasis_07.ogg":"sha256-qnv+bk6aLoIV2w9cUYECLd6fJOQTkAq8EJwF4oOBaK8=","index.mus_oasis_08.ogg":"sha256-D71wYCwSrjpPjudwvHMKZ3G5Xct1flmhzXlpcwFbXQA=","index.mus_oasis_09.ogg":"sha256-/Uq8q0771fVbBLCZx8disD1QWbYqZD2V5Nq2otWWKFU=","index.mus_oasis_10.ogg":"sha256-WCvciKxliX575QVUAIrHy2LnUGXbrWiYBoKnrcopa0c=","index.mus_oasis_11.ogg":"sha256-FG1xUqem39Ou60P/kjmcudgGvoXueJ1q5wQy5LzMWBc=","index.mus_oasis_12.ogg":"sha256-hDr7k6UmWpbwzG4SGTr8Haz1srBcvyiC5vmbCvDSxKU=","index.mus_results_01.ogg":"sha256-JoYU1NxsXyqMTnqF56pCwtaNHgqvP+uzqeQsT7UFjhg=","index.mus_results_02.ogg":"sha256-bH4PKH7VBwfikAS/hkjXrdUKInTqihnsf6YrC1K87Fk=","index.mus_results_03.ogg":"sha256-8kZIyhbtvyLNkQlRADWDjDXXYwEbtfsrgEqd2LA27V8=","index.mus_results_04.ogg":"sha256-llnsufkIAjf40FWrAPSg45OoZ7ZMBfKgaKBQ5Eft8PQ=","index.mus_results_05.ogg":"sha256-YnWdEwhrrBAc7BCHWsL2XButWAPxfVPkgxH2GL2Ln54=","index.mus_results_06.ogg":"sha256-Y313VR3ES297zdHCY0yVE5dpOmsRnR3xuBLmmg987aM=","index.mus_results_07.ogg":"sha256-SOXYI1Efcwrk6Zwu7xOkMR/Xh2CLcCVL0jG4Gj4DavU=","index.mus_results_08.ogg":"sha256-qYW1HJN/x57KI0CIKjii27BKkYzT6Ntf4XBjpm51J44=","index.mus_title_01.ogg":"sha256-aBVQFsQjoRP4Tz85V4Rkdt119HoImT8yeoYFvvNqKWU=","index.mus_title_02.ogg":"sha256-buvFyzD2JqQeKXA/yLoBI4le+nEH7iykhazSamWphYg=","index.mus_title_03.ogg":"sha256-QA+ALZcd4OfKeRyekNGpjRkeyAOasDibtsMV5Iqhjl0=","index.mus_title_04.ogg":"sha256-SzcPzUQlmOWIRu64TpnFeqF2BGdvMc+We8RUk7kb6gg=","index.mus_title_05.ogg":"sha256-rOCaIuripWNyK6ZfTzLiUsdoaBbbLKzgBarxPnkioOA=","index.mus_title_06.ogg":"sha256-h+6mGjGYFm4ig9BPfBP6UvTmuwEy04GUrSd7jJdXrV4=","index.mus_title_07.ogg":"sha256-OffNjsVK/o4xJtOP44YHjktM3g3RoWouwgK7PMy34oA=","index.mus_title_08.ogg":"sha256-/e2J8RvxmoGGW4O2XnrMVY/g65ONlWTTUArBXbBU1uQ=","index.mus_title_09.ogg":"sha256-2cdBZMGAeirZWNbMYxvW/0bc683m6fYZMcj2B9W+faQ=","index.mus_title_10.ogg":"sha256-x5oUi+rwrz0WTzcuhAaIKDBlhP+49OuxLLlMudZDrGc=","index.mus_title_11.ogg":"sha256-XXaNJSTNUwZMrvitvhMs93YwKXp2By7QetmUFmYzAVc=","index.mus_title_12.ogg":"sha256-q0WGHNaxwlQqieYnIkQVYysn+xFteKdapSBTs91Pvtc=","index.mus_zen_01.ogg":"sha256-s9uBzV5vTqyWzMSpxwTifORzkuVwaiwfmyNnHu3vwms=","index.mus_zen_02.ogg":"sha256-AVcaJA/qmd4p0QbpIRcz4fycFsf4ZgJlF0xWsNNjA/I=","index.mus_zen_03.ogg":"sha256-IKpxE6hxyHpxvkxLtFvx5Qessnts8wZDg/AwaNHFvPg=","index.mus_zen_04.ogg":"sha256-IUINTbrcHnJRu/zn9zNdx8tyZAp3yi0AIjFOBuIXiJE=","index.mus_zen_05.ogg":"sha256-yv788ZPV+iO+hNaJcyyya/zF4xTud0DJXQDO3Fo0Wm8=","index.mus_zen_06.ogg":"sha256-eYzzaRV/kSozeD+C5q7BeNv+vHgmxnuHlSjY9sxq538=","index.mus_zen_07.ogg":"sha256-zthZy3z9vv/nNLNomcFFnhxR+YhmbEQz1SiuU7Ckmug=","index.mus_zen_08.ogg":"sha256-6FjRJwL56qa1VIKcPLWVw+GAY+6ZDweylZWUETBp9RE=","index.mus_zen_09.ogg":"sha256-J9yQQfujnN7nnOnyJG/tE8WUVAQcz2rnOaOsYMBYhWw=","index.mus_zen_10.ogg":"sha256-JGySP4noLXFcPFncGPYBKu5bNZEaBtNMKziJUNmrfpo=","index.snd.pck":"sha256-cDV66I5pb+gK/bmZahPRKI3WKOFnDXCVqfq0jqy0AOY=","index.tex_etc2.pck":"sha256-Yphh3+AkyffllI7Ny8zBOWJU83hcP8qPJRxtMG8maaU=","index.tex_s3tc.pck":"sha256-UKbpqNJedXSkoew4C/UgCW78m6dhkipElHi1SP7Ssco="}, dev = BUILD.indexOf('__') === 0;
+	var BUILD = '6b0a11890fef', SRI = {"index.clim_etc2.pck":"sha256-0VVPR8RUToHvt/Jw+7PZkl/T3lbhPEYpIvr+ediF2LI=","index.clim_s3tc.pck":"sha256-11oT9z0hVGS/Rp0XGMpsHtToHsfOzyLI/JNgA7+Ih6U=","index.links_high_blob.json":"sha256-Qg4h2FD5LqTxU6fO1CmAWzzA3YUM7V42o2KE76hu0I8=","index.links_high_goo.json":"sha256-/bgZxpjOcUVk7DaVI6ciKhPWkToUyVj9QPB88HdLexM=","index.links_high_off.json":"sha256-xphf3itGjjwlzsp16gPyN8NAsS2YFDP5QAPpawGmyt0=","index.links_low_blob.json":"sha256-yaFfm37ILe/qwF4ModrJk5aUosFLL/D/bYbNX8kbAIk=","index.links_low_goo.json":"sha256-d7E59zyywwIhePhF2J3SvvzhAO6VgjFBQ4p095makHU=","index.links_low_off.json":"sha256-Nyah3eQArxSbrOljG3FUmhc4ajlmhrLmCVotlZ23+Gk=","index.mus_autumn_01.ogg":"sha256-Fdsn4ItLBRYhPjujbFl+rzTsjk6qaSOtrLIb7nC/pn8=","index.mus_autumn_02.ogg":"sha256-7/q+4oAIEh+fkJwcRvQJjZIpiGX7EJex/Br7o/+mwwE=","index.mus_autumn_03.ogg":"sha256-G9bt8j6C8FpXGd/g7HfrYaJazg/KI/J/nXBNSydjQOs=","index.mus_autumn_04.ogg":"sha256-l3fqCcfzgXM5MI0IXHRJUhliAk0IUgcq+Mu/l8EKC2I=","index.mus_autumn_05.ogg":"sha256-1PzZDtPOta5r+v9xTYpUd3rZVUf1ANvp/HcPhWnEbZI=","index.mus_autumn_06.ogg":"sha256-iBl3PRc4wDN9IhEIh42dhmTP6jhoTfHVDqrE6PG3f4k=","index.mus_autumn_07.ogg":"sha256-Yy3aBnS957ejiqtAzCTpv6v1xJYxVaeAKnmKF+C6h80=","index.mus_autumn_08.ogg":"sha256-dNd/lVlZXKm/g8rWbfzD1nZ9J0TKJtsS2e9FNITdsJk=","index.mus_autumn_09.ogg":"sha256-bah4ueNLgmTUCNgVhfn28oPU+4717YBd09FH1EFwg6c=","index.mus_autumn_10.ogg":"sha256-3Zf2L/JajbM6JL4BJDKu/joA5qb0pAnsAyuB+lHiTcQ=","index.mus_autumn_11.ogg":"sha256-PMtw07xCJbIpFGqoqghehg+pwVLMBhq3rkqE4pCv7g4=","index.mus_autumn_12.ogg":"sha256-M/8PFHsVpeYC1Bj2zwoKCoU2nGpu/dsK2DqWGPKUSP0=","index.mus_autumn_13.ogg":"sha256-aNz8Fhgy+Nd7UHe4Ma/1HyrQRgB++xsvm/5QbqbV96E=","index.mus_autumn_14.ogg":"sha256-nEs6EV2AL92C4VvN//+kJFl8XIxJr9hR/r8HWdmBrOQ=","index.mus_dusk_01.ogg":"sha256-I+xi3bJNHlZaxkjHiXDkQCaL49cwlMv/kr6BIWNbC/o=","index.mus_dusk_02.ogg":"sha256-0QAO6dXYvpXEau7jWMtNstRHEypC+/brwnv3YYCpiGo=","index.mus_dusk_03.ogg":"sha256-fIBxsaxRQ7ZUTiWukTYqa/HQv82dj9kBJf/sBQE8AsI=","index.mus_dusk_04.ogg":"sha256-t9uDHmnvBGhHxgTqEAm9nZD2nkuSUuXzuOTrTAkfvlY=","index.mus_dusk_05.ogg":"sha256-LsshrMMvwma1vV5XJwpMwhm6PbGM0aQwexIPk837lPk=","index.mus_dusk_06.ogg":"sha256-1dALiT5HuY4iFAKstJiV+J2iGRVsiTLh66srlzh2RSY=","index.mus_dusk_07.ogg":"sha256-lH6V9rezDZF6APKqSwyQdgc+1e6sFMCzdk4hJLnGb2Y=","index.mus_dusk_08.ogg":"sha256-DoThNS/3m+lgva4D1pwNSAsw+Ls0fbBdzgvNYHc0ykc=","index.mus_dusk_09.ogg":"sha256-O44KkWKLsUdoGEicYOoLi6h5MHqQ8UHSabv8kt93cqQ=","index.mus_dusk_10.ogg":"sha256-UcojrtDV9rzXa8qeb4kzaXToTerIZxl44znxiWQK1ic=","index.mus_dusk_11.ogg":"sha256-J1RtyOUIZLaO9y1O761O/GNCVb/WakPH7c0CJhZKMBQ=","index.mus_dusk_12.ogg":"sha256-qZ1kx3jyW8A2oEMOAHzlI740rnD3EJW+bT442QiCPBY=","index.mus_frost_01.ogg":"sha256-ILwSN2WsC6egNAkc8mtdzzcADO9b9niZVQiuvPYqOI8=","index.mus_frost_02.ogg":"sha256-q7B8dT0jCX6xwSWVt85Nc/gadDy+s5q1pjp2JW8kT5c=","index.mus_frost_03.ogg":"sha256-5Gtp3UCXJLUKaPOVgD16p1zQVh1m0rl7Lvt48IclJE8=","index.mus_frost_04.ogg":"sha256-PU+On1jQGXainIGdDEALlWFP9JZd7A/v6ZdrtowJNHg=","index.mus_frost_05.ogg":"sha256-Kcv8+zrE0JvPqUUlBR2y1scjXt3WfItDZAlI+Ez4+ws=","index.mus_frost_06.ogg":"sha256-2mvrtvBhlV06rt0j539vc1TGCYJpuOaZowaCFJnyjxc=","index.mus_frost_07.ogg":"sha256-oqHHqSFK+wNPzf6BBt/MSGubFZcZAowZZZrX9QJMMUI=","index.mus_frost_08.ogg":"sha256-GFqg6Rz/oKkJVJihbGgZ+G9QXA02g+lBGUuRQ6zI2hY=","index.mus_frost_09.ogg":"sha256-n8MNtR9EIPgpirRRLtK2k6d7kkkgKmfZz5tqu4bfjQg=","index.mus_frost_10.ogg":"sha256-wmvNVlfDKqGYr4q6hWZK+F5fj1lTa4MQhGb5zJZtYKs=","index.mus_frost_11.ogg":"sha256-5Yw3exC1KtYMlGbZ/y7/t44cEPCzYpCngM/L19LY6DA=","index.mus_frost_12.ogg":"sha256-tYhHHquoM3/LBmhmmCRDauz/Q23vwgb8YF+y0u/mHhQ=","index.mus_frost_13.ogg":"sha256-TiIayjFm2nH0lirwbRfJDIGiavYobdo0rrAYZksa0UY=","index.mus_golden_01.ogg":"sha256-4J7r+Re5jUMx9pIuQcIX/FWKETxdB4gQ+CmN2Yzeb2Q=","index.mus_golden_02.ogg":"sha256-fnOUvnG2bikq1n9DUNMitbrk4akiAh1eoLeV2S/hDdg=","index.mus_golden_03.ogg":"sha256-5G4HFQ+8P52V9WaQeLhK+tSheahNcz07CdYGra37Z1o=","index.mus_golden_04.ogg":"sha256-B/3moJo+tFvvEWEEdNhUrDCnCb8ePK7uu/0aCgb0JSg=","index.mus_golden_05.ogg":"sha256-Wk5eiuBmrWSoQmGclWSaM/hyVg4/x7U3Dk2uJbLUzXQ=","index.mus_golden_06.ogg":"sha256-kuXT7xUauZOtHy8T7BHPqak3bRp1UD/OyeRvU1xul1s=","index.mus_golden_07.ogg":"sha256-LVBs6z2HE4La0UtHwY2tOxw+BLDz2FU0U16h99tigM8=","index.mus_golden_08.ogg":"sha256-puZ+NHCQA51Cg11FvtTNhLy0c05FNYUDopaGj9h/q7c=","index.mus_golden_09.ogg":"sha256-Zm2hfPqZ88nYgO+yyScujAK5VMuf/VXcdNzuoq9hGOQ=","index.mus_golden_10.ogg":"sha256-UEEyUOBRrJKHfGpKBCMPEVus+aWLBdTaTrSyB8DKu/c=","index.mus_golden_11.ogg":"sha256-i/Si2mh9xF5cuIrJo262T1JUAkh6HY0bd/cXqsp/vKo=","index.mus_golden_12.ogg":"sha256-PKWWL8EmzZUq0idpurTFKrRt0QDrjfHr9V6CGCGUTto=","index.mus_golden_13.ogg":"sha256-/vSl+ej2XluuFFuvHHFiO5lqvXDl166FJsEy32uxaF4=","index.mus_golden_14.ogg":"sha256-FcuX3wpdR7jVilbs5T10BGWCWKcxnJXH/iMQ9wrA2y8=","index.mus_golden_15.ogg":"sha256-grwPapo3TTC4ELIpJbpdAgm/PwpndJwtV6noT6EB6gU=","index.mus_golden_16.ogg":"sha256-TCLxehDpumxjZIXsSD8ox+lvcNl/Vg3mZ3pXlhOH+kQ=","index.mus_meadow_01.ogg":"sha256-OwcBwJsfjhlQkUbJH10xtsiXAw8i+U6Uhx5MeORphfY=","index.mus_meadow_02.ogg":"sha256-Br3y53F+kCl/hxBc0e925MPOA2a3dRWLVrCvSbVWd/U=","index.mus_meadow_03.ogg":"sha256-5EXhXVXqgmGstVOFQf9Lb21I8gtn93fc6Olge4rd47E=","index.mus_meadow_04.ogg":"sha256-JrCof3zimLygmWdpGHu0ZML+b2qHcP3bhjnFynedxEA=","index.mus_meadow_05.ogg":"sha256-wtu1TVFC9qb5DiQ9DW6vDJe2e3UuD9JX+h9Qa7nqE5k=","index.mus_meadow_06.ogg":"sha256-sRumS5RGffslEHpmTo7fjt31SmkHY6uog0hvrGxW4PE=","index.mus_meadow_07.ogg":"sha256-QVs71bcFl5E2obutHqDXiDfwwfdwCofjerOrbU4pFjg=","index.mus_meadow_08.ogg":"sha256-06f4l97+ojXX7Exy4H9bRmqwm9yBSJmpa/F3sgcmHoc=","index.mus_meadow_09.ogg":"sha256-yYda1ri5rkOoXE1BvpthRAhJ7i1uMAWMuUQuXMY+DEM=","index.mus_meadow_10.ogg":"sha256-FAg6kXHEtj97UjmoFP/H30qE14iXo1QYmDMItfAZSOg=","index.mus_meadow_11.ogg":"sha256-xJdfYMlR4F0aHqsOXSgI/eCDveoL+9EMrHgOw0T+ePI=","index.mus_meadow_12.ogg":"sha256-LCvi/gvsKsoLss6ud8kitE50uRMX2h/hsBiyKOzovug=","index.mus_meadow_13.ogg":"sha256-lkdYnFSMRb8Mt9jp8G6/EvenMvqLWTs1bPPLEHq4kq4=","index.mus_meadow_14.ogg":"sha256-aHzJ2mOYqTDiWs2brFj0HChw6cQOd08ppBC+ci3ru4s=","index.mus_meadow_15.ogg":"sha256-jStEPdWr6Rs9n3d+w/5i3y39266XPc/fkMnWNE9yADo=","index.mus_meadow_16.ogg":"sha256-hRCtoGNuj9tlCaN8TDXiJn8BoNIXwHgJeniCuwDQnKk=","index.mus_meadow_17.ogg":"sha256-OHvcRlnYdip/jeOhQmPuaQynA7KBR+w4sLtb41rX+YA=","index.mus_meadow_18.ogg":"sha256-pZTudo7bKM7N3Y4HCsXaUPt/e8MLVMfArUyux8NvMVw=","index.mus_meadow_19.ogg":"sha256-2l+zOowK3/3kMoRLmDY/XTSHZabyhhqIZ2iwUarq+IU=","index.mus_oasis_01.ogg":"sha256-yUczDoGWN2d9m8IDE4RdFAjvP5Vq7B1MAJjk/hH1eYM=","index.mus_oasis_02.ogg":"sha256-NcT2AjcqrKzU10zK0O6MGV1/0v2MCvWN0uo2Cfn3GP4=","index.mus_oasis_03.ogg":"sha256-p4eTQTYsPoab/z2JMmNwOByN1ApVA2XnDxCY9PJM/8k=","index.mus_oasis_04.ogg":"sha256-0YSf10yg5nxj+EpQX1Ta6N9jAY5x/80H5/BKfSfupkI=","index.mus_oasis_05.ogg":"sha256-Y3zPjTMoKsoi04Y4Y0lV1vIvDYN8PgP5pa36TiIDtGw=","index.mus_oasis_06.ogg":"sha256-WlW7h5vE++NPOl6saNQt5mMDWzGaADdybs+pkrTiuN8=","index.mus_oasis_07.ogg":"sha256-qnv+bk6aLoIV2w9cUYECLd6fJOQTkAq8EJwF4oOBaK8=","index.mus_oasis_08.ogg":"sha256-D71wYCwSrjpPjudwvHMKZ3G5Xct1flmhzXlpcwFbXQA=","index.mus_oasis_09.ogg":"sha256-/Uq8q0771fVbBLCZx8disD1QWbYqZD2V5Nq2otWWKFU=","index.mus_oasis_10.ogg":"sha256-WCvciKxliX575QVUAIrHy2LnUGXbrWiYBoKnrcopa0c=","index.mus_oasis_11.ogg":"sha256-FG1xUqem39Ou60P/kjmcudgGvoXueJ1q5wQy5LzMWBc=","index.mus_oasis_12.ogg":"sha256-hDr7k6UmWpbwzG4SGTr8Haz1srBcvyiC5vmbCvDSxKU=","index.mus_results_01.ogg":"sha256-JoYU1NxsXyqMTnqF56pCwtaNHgqvP+uzqeQsT7UFjhg=","index.mus_results_02.ogg":"sha256-bH4PKH7VBwfikAS/hkjXrdUKInTqihnsf6YrC1K87Fk=","index.mus_results_03.ogg":"sha256-8kZIyhbtvyLNkQlRADWDjDXXYwEbtfsrgEqd2LA27V8=","index.mus_results_04.ogg":"sha256-llnsufkIAjf40FWrAPSg45OoZ7ZMBfKgaKBQ5Eft8PQ=","index.mus_results_05.ogg":"sha256-YnWdEwhrrBAc7BCHWsL2XButWAPxfVPkgxH2GL2Ln54=","index.mus_results_06.ogg":"sha256-Y313VR3ES297zdHCY0yVE5dpOmsRnR3xuBLmmg987aM=","index.mus_results_07.ogg":"sha256-SOXYI1Efcwrk6Zwu7xOkMR/Xh2CLcCVL0jG4Gj4DavU=","index.mus_results_08.ogg":"sha256-qYW1HJN/x57KI0CIKjii27BKkYzT6Ntf4XBjpm51J44=","index.mus_title_01.ogg":"sha256-aBVQFsQjoRP4Tz85V4Rkdt119HoImT8yeoYFvvNqKWU=","index.mus_title_02.ogg":"sha256-buvFyzD2JqQeKXA/yLoBI4le+nEH7iykhazSamWphYg=","index.mus_title_03.ogg":"sha256-QA+ALZcd4OfKeRyekNGpjRkeyAOasDibtsMV5Iqhjl0=","index.mus_title_04.ogg":"sha256-SzcPzUQlmOWIRu64TpnFeqF2BGdvMc+We8RUk7kb6gg=","index.mus_title_05.ogg":"sha256-rOCaIuripWNyK6ZfTzLiUsdoaBbbLKzgBarxPnkioOA=","index.mus_title_06.ogg":"sha256-h+6mGjGYFm4ig9BPfBP6UvTmuwEy04GUrSd7jJdXrV4=","index.mus_title_07.ogg":"sha256-OffNjsVK/o4xJtOP44YHjktM3g3RoWouwgK7PMy34oA=","index.mus_title_08.ogg":"sha256-/e2J8RvxmoGGW4O2XnrMVY/g65ONlWTTUArBXbBU1uQ=","index.mus_title_09.ogg":"sha256-2cdBZMGAeirZWNbMYxvW/0bc683m6fYZMcj2B9W+faQ=","index.mus_title_10.ogg":"sha256-x5oUi+rwrz0WTzcuhAaIKDBlhP+49OuxLLlMudZDrGc=","index.mus_title_11.ogg":"sha256-XXaNJSTNUwZMrvitvhMs93YwKXp2By7QetmUFmYzAVc=","index.mus_title_12.ogg":"sha256-q0WGHNaxwlQqieYnIkQVYysn+xFteKdapSBTs91Pvtc=","index.mus_zen_01.ogg":"sha256-s9uBzV5vTqyWzMSpxwTifORzkuVwaiwfmyNnHu3vwms=","index.mus_zen_02.ogg":"sha256-AVcaJA/qmd4p0QbpIRcz4fycFsf4ZgJlF0xWsNNjA/I=","index.mus_zen_03.ogg":"sha256-IKpxE6hxyHpxvkxLtFvx5Qessnts8wZDg/AwaNHFvPg=","index.mus_zen_04.ogg":"sha256-IUINTbrcHnJRu/zn9zNdx8tyZAp3yi0AIjFOBuIXiJE=","index.mus_zen_05.ogg":"sha256-yv788ZPV+iO+hNaJcyyya/zF4xTud0DJXQDO3Fo0Wm8=","index.mus_zen_06.ogg":"sha256-eYzzaRV/kSozeD+C5q7BeNv+vHgmxnuHlSjY9sxq538=","index.mus_zen_07.ogg":"sha256-zthZy3z9vv/nNLNomcFFnhxR+YhmbEQz1SiuU7Ckmug=","index.mus_zen_08.ogg":"sha256-6FjRJwL56qa1VIKcPLWVw+GAY+6ZDweylZWUETBp9RE=","index.mus_zen_09.ogg":"sha256-J9yQQfujnN7nnOnyJG/tE8WUVAQcz2rnOaOsYMBYhWw=","index.mus_zen_10.ogg":"sha256-JGySP4noLXFcPFncGPYBKu5bNZEaBtNMKziJUNmrfpo=","index.snd.pck":"sha256-cDV66I5pb+gK/bmZahPRKI3WKOFnDXCVqfq0jqy0AOY=","index.tex_etc2.pck":"sha256-Yphh3+AkyffllI7Ny8zBOWJU83hcP8qPJRxtMG8maaU=","index.tex_s3tc.pck":"sha256-UKbpqNJedXSkoew4C/UgCW78m6dhkipElHi1SP7Ssco="}, dev = BUILD.indexOf('__') === 0;
 	if (dev) { BUILD = ''; SRI = {}; }
 	var api = window.__basinPage = { build: BUILD, game: null, store: {}, update: false, unkept: false, offline: '', error: '' };
 	function quietly(f) { try { return f(); } catch (e) { api.error = String(e); return null; } }
@@ -255,6 +268,72 @@ body {
 	document.addEventListener('visibilitychange', function () { if (document.hidden) { hide(); } else { tell('show'); } });
 	window.addEventListener('pagehide', hide);
 	document.addEventListener('freeze', hide);
+
+	/* --- OpenGame -------------------------------------------------------------------------- */
+	/* Inside an OpenGame frame the page around the game owns pause, mute, fullscreen and the
+	   player (tools/web/opengame/README.md). Its SDK, the build's own copy (index.og.js), is
+	   fetched only there: anywhere else nothing of this runs and nothing is asked for.
+	   host: what the page around says. Until its SDK has shaken hands and said otherwise,
+	   the game is silent (the frame boots under a poster, muted, before Play). */
+	var framed = quietly(function () { return window.parent !== window; }) === true, h = location.hostname;
+	api.hosted = framed && (/(^|\.)opengame\.gg$/.test(h) ||
+		(/^(localhost|127\.0\.0\.1)$/.test(h) && (/^459[01]$/.test(location.port) || /[?&]og=1(&|$)/.test(location.search))));
+	api.host = { muted: api.hosted, paused: false, full: false, name: '', connected: false };
+	var og = null, readied = false;
+	function sound() {
+		var quiet = api.host.muted || api.host.paused;
+		window.__basinHushed = quiet;
+		quietly(function () { if (window.__basinHush) { window.__basinHush(quiet); } });
+	}
+	function connect() {
+		var g = window.OpenGame;
+		g = g && g.og && g.og.init ? g.og : g;
+		if (!g || typeof g.init !== 'function') { api.host.muted = false; sound(); return; }
+		og = g;
+		var started = quietly(function () { return og.init(); });
+		quietly(function () {
+			og.onPause(function (p) {
+				api.host.paused = p === true;
+				sound();
+				tell('pause', api.host.paused ? '1' : '');
+			});
+			og.fullscreen.onChange(function (a) { api.host.full = a === true; });
+			og.player.onChange(function (p) {
+				api.host.name = p && typeof p.handle === 'string' ? p.handle : '';
+				tell('name', api.host.name);
+			});
+		});
+		/* og.audio.muted reads false until the page first says otherwise: only after init. */
+		Promise.resolve(started).then(function () {
+			api.host.connected = !!quietly(function () { return og.env.connected; });
+			quietly(function () { og.audio.onHostMute(function (m) { api.host.muted = m === true; sound(); }); });
+			if (!api.host.connected) { api.host.muted = false; sound(); }
+		}, function () { api.host.muted = false; sound(); });
+		if (readied) { quietly(function () { og.ready(); }); }
+	}
+	if (api.hosted) {
+		sound();
+		if (window.OpenGame) {
+			connect();
+		} else {
+			var sdk = document.createElement('script');
+			sdk.src = 'index.og.js' + (BUILD ? '?b=' + BUILD : '');
+			sdk.onload = function () { quietly(connect); };
+			/* No SDK: the game is its own, with sound. */
+			sdk.onerror = function () { api.host.muted = false; sound(); };
+			(document.head || document.documentElement).appendChild(sdk);
+		}
+	}
+	/* The first frame the player can act in (the title takes a press). */
+	function playable() {
+		readied = true;
+		if (og) { quietly(function () { og.ready(); }); }
+	}
+	/* The page's own button over the HUD's (scripts/ui/web_fullscreen.gd) asks the page
+	   around: a frame cannot take fullscreen itself. Called from the player's click. */
+	api.hostFullscreen = function () {
+		if (og && !api.host.full) { quietly(function () { og.fullscreen.request(); }); }
+	};
 
 	/* --- messages ------------------------------------------------------------------------- */
 	function el(tag, text, parent) {
@@ -369,6 +448,27 @@ body {
 		}, true);
 	};
 
+	/* The engine stopped after it started: a trap, an abort, no more memory. Its loop is
+	   dead and the picture would stand frozen; what it saved is kept, and the run in hand
+	   was kept at its last calm moment (scripts/ui/run_keep.gd). */
+	var crashed = false;
+	function fatal(x) {
+		if (typeof WebAssembly !== 'undefined' && WebAssembly.RuntimeError && x instanceof WebAssembly.RuntimeError) { return true; }
+		var m = String(x && x.message !== undefined ? x.message : x);
+		return /Aborted\(|^abort\(|RuntimeError|unreachable|memory access out of bounds|out of memory|\bOOM\b|Cannot enlarge memory|Array buffer allocation failed/i.test(m);
+	}
+	api.crashed = function (why) {
+		if (crashed) { return; }
+		crashed = true;
+		api.error = String(why && why.message !== undefined ? why.message : why).slice(0, 300);
+		window.__basinHushed = true;
+		quietly(function () { if (window.__basinHush) { window.__basinHush(true); } });
+		say('The game stopped', 'Something went wrong inside the game. Your saves are kept: this goes back to the run.',
+			[['Go back to the run', function () { api.reload(true); }, true]], 'alone');
+	};
+	window.addEventListener('error', function (e) { if (started && fatal(e.error || e.message)) { api.crashed(e.error || e.message); } });
+	window.addEventListener('unhandledrejection', function (e) { if (started && fatal(e.reason)) { api.crashed(e.reason); } });
+
 	/* --- installing, and working offline ------------------------------------------------------ */
 	var offer = null;
 	window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); offer = e; tell('install'); });
@@ -399,6 +499,7 @@ body {
 		if (up) { return; }
 		up = true;
 		api.started();
+		playable();
 		quietly(function () { if (navigator.storage && navigator.storage.persist && !/Firefox/.test(navigator.userAgent)) { navigator.storage.persist().catch(function () {}); } });
 		if (!BUILD || location.protocol === 'file:') { return; }
 		setTimeout(function () { quietly(function () { if ('serviceWorker' in navigator) { enlist(tier); } }); }, 3000);
@@ -592,23 +693,64 @@ body {
 	var gl = null, waiting = new Map(), linked = new Set(), queued = null, also = {};
 	stats.off = false;
 
+	/* --- feeding the links ---------------------------------------------------- */
+	/* Programs are handed over a slice at a time, between the page's tasks, so the page
+	   keeps drawing (its bar, the Starting is slow notice) and the GPU process is not
+	   handed the whole boot at once: its memory peaks with what it is translating.
+	   FEED is [programs started per slice, ms between slices], as measured cold in
+	   headless Chromium, Firefox and WebKit (docs/web-build.md):
+	   - Chromium: 8 a slice. Ready as soon as with the whole boot at once (2.1 s against
+	     2.3), and the GPU process peaks at about 600-680 MB instead of 825. 4 starve it (9.7 s).
+	   - WebKit: all at once. It links in parallel only what it is given together: 8 a
+	     slice took 4.2 s against 2.7.
+	   - No KHR_parallel_shader_compile (Firefox): none. Each link blocks the page for its
+	     whole length (about 120 ms there) whoever asks, so linking ahead only adds the
+	     programs Godot would link later and froze the page for 13 s (18.8 s to ready);
+	     Godot links as it asks (13 s, its 70 programs before the title takes a press).
+	   ?links=<n>[-<ms>] overrides it, for measuring; ?links=off turns link-ahead off. */
+	var ua = navigator.userAgent, wk = /AppleWebKit/.test(ua) && !/Chrome\/|Chromium\/|Firefox\//.test(ua);
+	var FEED = wk ? [1000, 0] : [8, 0];
+	var asked = /[?&]links=(\d+)(?:-(\d+))?/.exec(location.search);
+	if (asked) { FEED = [Math.max(1, +asked[1]), +(asked[2] || 0)]; }
+	stats.feed = FEED.join('-');
+	var parallel = false, todo = [], texts = new Map(), pumping = false;
 	function load(type, src) {
 		var sh = raw.createShader.call(gl, type);
 		raw.shaderSource.call(gl, sh, src);
 		raw.compileShader.call(gl, sh);
 		return sh;
 	}
-	/* Starts linking one program; `waiting` holds it until Godot asks for it. */
+	/* Queues one program. `waiting` holds a null for it until its turn comes, then the
+	   program, until Godot asks for it. */
 	function ahead(vs, fs) {
-		var prog = raw.createProgram.call(gl), key = vs + fs;
+		if (!parallel) { return; }
+		var key = vs + fs;
+		texts.set(key, [vs, fs]);
+		todo.push(key);
+		if (!waiting.has(key)) { waiting.set(key, []); }
+		waiting.get(key).push(null);
+		stats.ahead += 1;
+		if (!pumping) { pumping = true; setTimeout(pump, 0); }
+	}
+	function begin(vs, fs) {
+		var prog = raw.createProgram.call(gl);
 		[load(gl.VERTEX_SHADER, vs), load(gl.FRAGMENT_SHADER, fs)].forEach(function (sh) {
 			raw.attachShader.call(gl, prog, sh);
 			raw.deleteShader.call(gl, sh);
 		});
 		raw.linkProgram.call(gl, prog);
-		if (!waiting.has(key)) { waiting.set(key, []); }
-		waiting.get(key).push(prog);
-		stats.ahead += 1;
+		return prog;
+	}
+	function pump() {
+		for (var n = 0; todo.length && n < FEED[0];) {
+			var key = todo.shift(), list = waiting.get(key), i = list ? list.indexOf(null) : -1, src = texts.get(key);
+			if (i < 0 || !src) { continue; }   /* Godot linked it first */
+			list[i] = begin(src[0], src[1]);
+			if (list.indexOf(null) < 0) { texts.delete(key); }
+			n += 1;
+		}
+		if (todo.length) { setTimeout(pump, FEED[1]); return; }
+		pumping = false;
 	}
 
 	/* --- the manifest ------------------------------------------------------- */
@@ -630,6 +772,7 @@ body {
 	function start(name, man) {
 		if (!gl || stats.manifest === name) { return; }
 		stats.manifest = name;
+		if (!parallel) { stats.serial = true; return; }   /* Godot links as it asks: FEED */
 		var s = unpack(man.stages);
 		man.progs.forEach(function (p) { ahead(s[p[0]], s[p[1]]); });
 	}
@@ -669,6 +812,7 @@ body {
 	function adopt(ctx) {
 		if (!ctx || gl) { return; }
 		gl = ctx;
+		parallel = !!raw.getExtension.call(ctx, 'KHR_parallel_shader_compile');
 		/* The extensions Emscripten turns on change how shaders are translated. */
 		(ctx.getSupportedExtensions() || []).forEach(function (n) {
 			if (n.indexOf('lose_context') < 0 && n.indexOf('debug') < 0) { raw.getExtension.call(ctx, n); }
@@ -768,8 +912,14 @@ body {
 		if (vs && fs && !prog.__own && prog.__ours === undefined) {
 			var key = vs + fs, hit = waiting.get(key);
 			linked.add(print(vs, fs));
-			if (hit) {
-				var ours = hit.shift();
+			/* One not started yet (its turn had not come): Godot links it, as without a manifest. */
+			var at = hit ? hit.findIndex(function (p) { return p !== null; }) : -1;
+			if (hit && at < 0) {
+				hit.shift();
+				if (!hit.length) { waiting.delete(key); texts.delete(key); }
+				stats.late = (stats.late || 0) + 1;
+			} else if (hit) {
+				var ours = hit.splice(at, 1)[0];
 				if (!hit.length) { waiting.delete(key); }
 				var t = performance.now();
 				var ok = raw.getProgramParameter.call(gl, ours, LINK_STATUS);
@@ -826,8 +976,10 @@ body {
 		setTimeout(function () {
 			if (Object.keys(also).length) { return; }
 			stats.unused = waiting.size;
-			waiting.forEach(function (list) { list.forEach(function (p) { raw.deleteProgram.call(gl, p); }); });
+			waiting.forEach(function (list) { list.forEach(function (p) { if (p) { raw.deleteProgram.call(gl, p); } }); });
 			waiting.clear();
+			todo.length = 0;
+			texts.clear();
 		}, 10000);
 	}, 2000);
 
@@ -933,6 +1085,10 @@ body {
 /* Keeps the page's sound under full volume: everything Godot sends to the speakers goes
    through one gentle limiter (the engine's small template has none). Also counts contexts
    left suspended and resumes them on the next press (iPhones suspend after a call).
+   After the limiter a gate: __basinHush(true) silences the whole page (the page around an
+   OpenGame frame paused or muted it, or the engine stopped: tools/web/shell.html), and
+   __basinHush(false) lets it be heard again. window.__basinHushed is its state, set by
+   the shell before any sound is made.
    This file is tools/web/limiter.js, embedded by tools/web/embed_head.py. */
 (function () {
 	if (typeof AudioNode === 'undefined') { return; }
@@ -941,13 +1097,14 @@ body {
 		if (to instanceof AudioDestinationNode && !this.__basinOut) {
 			var c = this.context;
 			if (!c.__basinLimit) {
-				var l = c.createDynamicsCompressor(), g = c.createGain();
+				var l = c.createDynamicsCompressor(), g = c.createGain(), gate = c.createGain();
 				l.threshold.value = -7; l.knee.value = 5; l.ratio.value = 14; l.attack.value = 0.003; l.release.value = 0.2;
 				/* The node adds make-up of its own, (1 / its gain at full scale)^0.6: take it back. */
 				g.gain.value = 0.66;
-				g.__basinOut = true;
-				connect.call(l, g); connect.call(g, to);
-				c.__basinLimit = l; seen.push(c);
+				gate.gain.value = window.__basinHushed ? 0 : 1;
+				gate.__basinOut = true;
+				connect.call(l, g); connect.call(g, gate); connect.call(gate, to);
+				c.__basinLimit = l; c.__basinGate = gate; seen.push(c);
 				/* The recorded music plays in the same context (tools/web/music_deck.js). */
 				window.__basinAudio = c;
 			}
@@ -960,6 +1117,14 @@ body {
 	function wake() { seen.forEach(function (c) { if (c.state === 'suspended' || c.state === 'interrupted') { c.resume().catch(function () {}); } }); }
 	['pointerdown', 'touchend', 'keydown'].forEach(function (e) { window.addEventListener(e, wake, true); });
 	document.addEventListener('visibilitychange', function () { if (document.hidden) { rest(); } else { wake(); } });
+	window.__basinHush = function (on) {
+		window.__basinHushed = !!on;
+		seen.forEach(function (c) {
+			try { c.__basinGate.gain.setTargetAtTime(on ? 0 : 1, c.currentTime, 0.02); } catch (e) { c.__basinGate.gain.value = on ? 0 : 1; }
+		});
+		/* Play on the page around: a frame it lets play may start its sound now. */
+		if (!on && !document.hidden) { wake(); }
+	};
 })();
 </script>
 <script>
@@ -1000,7 +1165,15 @@ body {
    and wherever one cannot be decoded, the engine's own score plays on.
    This file is tools/web/music_deck.js, embedded by tools/web/embed_head.py. */
 (function () {
-	var bufs = {}, states = {}, raw = {}, voices = [], master = null, level = 1;
+	var bufs = {}, states = {}, raw = {}, voices = [], master = null, level = 1, frees = {};
+	/* A section asked to go while a voice still plays it goes when that voice ends. */
+	function drop(id) {
+		for (var v = 0; v < voices.length; v++) { if (voices[v] && voices[v].id === id) { frees[id] = true; return; } }
+		if (states[id] === 'loading') { frees[id] = true; return; }
+		delete frees[id];
+		delete bufs[id];
+		if (states[id] === 'ready') { states[id] = 'none'; }
+	}
 	function ctx() { return window.__basinAudio || null; }
 	function out() {
 		var c = ctx();
@@ -1020,7 +1193,11 @@ body {
 		if (!c) { states[id] = 'loading'; setTimeout(function () { decode(id); }, 500); return; }
 		/* A copy: decoding takes its buffer away, and the bytes are kept to decode again later. */
 		var bytes = raw[id].slice(0);
-		var done = function (b) { bufs[id] = b; states[id] = 'ready'; };
+		var done = function (b) {
+			/* Let go while it decoded: not kept. */
+			if (frees[id]) { delete frees[id]; states[id] = 'none'; return; }
+			bufs[id] = b; states[id] = 'ready';
+		};
 		var fail = function () { states[id] = 'failed'; };
 		try {
 			var p = c.decodeAudioData(bytes, done, fail);
@@ -1031,6 +1208,7 @@ body {
 		now: function () { var c = ctx(); return c ? c.currentTime : 0; },
 		state: function (id) { return states[id] || 'none'; },
 		load: function (id) {
+			delete frees[id];
 			if (states[id] === 'ready' || states[id] === 'loading') { return; }
 			states[id] = 'loading';
 			if (raw[id]) { decode(id); return; }
@@ -1057,7 +1235,17 @@ body {
 				gin.gain.setValueCurveAtTime(curve(true, 1), Math.max(a, c.currentTime), Math.max(b - Math.max(a, c.currentTime), 0.01));
 			}
 			src.start(Math.max(at, c.currentTime), Math.max(from + Math.max(c.currentTime - at, 0), 0));
-			voices[v] = { src: src, gout: gout, id: id };
+			var e = voices[v] = { src: src, gout: gout, id: id };
+			delete frees[id];
+			/* Ended (its file ran out, or a fade stopped it): the voice is free, and a section
+			   asked to go meanwhile goes now. */
+			src.onended = function () {
+				/* Out of the graph: a connected node keeps its buffer alive. */
+				try { src.disconnect(); gin.disconnect(); gout.disconnect(); } catch (x) {}
+				if (voices[v] !== e) { return; }
+				voices[v] = null;
+				if (frees[id]) { drop(id); }
+			};
 		},
 		fade: function (v, a, b) {
 			var e = voices[v], c = ctx();
@@ -1071,7 +1259,11 @@ body {
 		},
 		stop: function (v) {
 			var e = voices[v];
-			if (e) { try { e.src.stop(); } catch (x) {} voices[v] = null; }
+			if (e) {
+				voices[v] = null;
+				try { e.src.stop(); } catch (x) {}
+				if (frees[e.id]) { drop(e.id); }
+			}
 		},
 		level: function (x) {
 			level = x;
@@ -1080,12 +1272,11 @@ body {
 		},
 		/* The music's own output, before the limiter (tools/web/music_record.py measures it). */
 		node: function () { return out(); },
-		/* A section's decoded copy is 10 to 15 MB: it goes once it is played, and its bytes stay. */
-		free: function (id) {
-			for (var v = 0; v < voices.length; v++) { if (voices[v] && voices[v].id === id) { return; } }
-			delete bufs[id];
-			if (states[id] === 'ready') { states[id] = 'none'; }
-		}
+		/* A section's decoded copy is 10 to 15 MB: it goes once it is played (when its voice
+		   ends, if one still plays it), and its bytes stay. */
+		free: function (id) { drop(id); },
+		/* What is decoded now, for tests (tools/web/jam_check.py). */
+		decoded: function () { return Object.keys(bufs); }
 	};
 })();
 </script>
@@ -1106,7 +1297,7 @@ body {
 
 		
 		<script>window.__basinPage.guard(document.getElementById('canvas'));</script>
-		<script src="index.js?b=6b09e739c3db" onerror="window.__basinPage.failed([])"></script>
+		<script src="index.js?b=6b0a11890fef" onerror="window.__basinPage.failed([])"></script>
 		<script>
 (function () {
 	if (typeof Engine === 'undefined') { return; }
@@ -1121,7 +1312,7 @@ body {
 	overlay.style.visibility = 'visible';
 	bar.style.display = 'block';
 	page.starting();
-	new Engine({"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":true,"fileSizes":{"index.pck":2710896,"index.wasm":18211997},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4}).startGame({
+	new Engine({"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":true,"fileSizes":{"index.pck":2731548,"index.wasm":18211997},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4}).startGame({
 		onProgress: function (now, of) {
 			page.progress(now, of);
 			if (now > 0 && of > 0) {
