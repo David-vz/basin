@@ -10,7 +10,7 @@
    (index.mus_*.ogg, 38 MB in all) are not fetched ahead either: each is kept once it has
    been played, so what was heard is there offline. */
 'use strict';
-const BUILD = '6b08120db4da';
+const BUILD = '6b09c713fd64';
 const FILES = {
 	"index.apple-touch-icon.png": [
 		"a187d78ec1f1791b246a3af6ecb6e5d46c6606d3b4e42382c95c566cffc963a6",
@@ -33,8 +33,8 @@ const FILES = {
 		1029544
 	],
 	"index.html": [
-		"9f6c3976093c1b3ee7873dc7048f69e3d45bd063d3ca7f37189e7097f82795d3",
-		65269
+		"2b8130afadfd81b2e8aca3633e3e7c1e07fdab55ea03281f60340068ea9c4a7a",
+		61956
 	],
 	"index.icon.png": [
 		"4e41f4ed0c43431b419978274885448dba882cbd2b9ed0a0dcaa2648200d4f2d",
@@ -49,32 +49,32 @@ const FILES = {
 		28349
 	],
 	"index.js": [
-		"41a9f26f6718ea1e5edde740282e4b6fb485ded53ed6d22dda4c6f474827e60f",
-		244440
+		"8f32fa43de23466f14475a786d9892ae641f201ee7a957da64d9478025a08ac1",
+		244389
 	],
 	"index.links_high_blob.json": [
-		"c44e2b151378ed77440e3eb2d014297f50a7cbed513eec0de019d8178c7c3a92",
-		354658
+		"365abfbe005a3863e9deea501beaa793181089884c2fd94e39f09fe1ed4c0a7c",
+		360616
 	],
 	"index.links_high_goo.json": [
-		"f27a781b346a58ed8cab8d35bb89c1b3a90780ff3737e6011bb8e56292c4f600",
-		369299
+		"6ffacc26ce788b10658fde25beeb392acda5897c2c06fe358ac9f640ea225de1",
+		375271
 	],
 	"index.links_high_off.json": [
-		"a2150378ffec475d2975c440e6f275b31b68b8d268418039177466a8822634a1",
-		333212
+		"088be0448e6f3047e120fb67ff7938292cd00c3ac896b6389eb8acc278a2f6b2",
+		338912
 	],
 	"index.links_low_blob.json": [
-		"96153b15583a0e41c4eaf370f76e018bebc1ba67298b6bb764c45b6e6d48f28e",
-		351589
+		"421dc3ccf0a24066be7916c109cb2c5f9392c8bf88c232b3b4d012ec21de69e1",
+		357547
 	],
 	"index.links_low_goo.json": [
-		"deeac2abbdf4bbc95e77b105a0b76c6f6763bc9a224c0c8d9dc0bac5376868b7",
-		366331
+		"4c418ce43ab71c14eb8a127b85c4f15d7fcfcf8dc200593b605aed38ed517de9",
+		372303
 	],
 	"index.links_low_off.json": [
-		"ee782f20f42e938b8b4b57719977b26946637d04b3ba0425fd0666c97089024b",
-		330108
+		"db031e3a6a8d3283bbbde60f25dcaf48d82d40dc89826e559c5ec97821d23b57",
+		335808
 	],
 	"index.maskable512.png": [
 		"ea0c00e54a683bae9a234f79b11c62b88f5a55f581c65e587ce71f5caec8793e",
@@ -545,8 +545,8 @@ const FILES = {
 		285118
 	],
 	"index.pck": [
-		"b4d452f74502d31ed79b6f623c2e14930de55b444cae60382bdd6c88ef6fd5fa",
-		2680368
+		"57c5e94da82a1a5d267eaab7bb1bebd847a4be8dff859916c5f4dec00dd1a584",
+		2696448
 	],
 	"index.png": [
 		"049df7647f742956d2427474e7c7a32d5e410a9f04e962ba009b45a3c06b86a1",
